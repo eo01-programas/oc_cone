@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f7a3d" />
+  <title>Orden de Cambio | Acceso</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/chrome.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="css/tab-fill.css" />
+  <link rel="stylesheet" href="css/tab-preview.css" />
+  <link rel="stylesheet" href="css/tab-registry.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- LOGIN / SELECCIÓN DE PERFIL -->
+    <section id="loginView" class="login-view">
+      <div class="login-card">
+        <div class="login-card-header">
+          <div class="login-brand-lockup" aria-label="Marca de la aplicación">
+            <div class="login-brand-mark" aria-hidden="true">🧵</div>
+            <div class="login-brand-name">COFACO</div>
+          </div>
+          <div class="login-heading">
+            <h1 class="login-title">Aplicación Orden de Cambio</h1>
+            <p class="login-eyebrow">HILANDERÍA</p>
+            <p class="login-company">COFACO INDUSTRIES S.A.C.</p>
+          </div>
+        </div>
+
+        <div class="login-panel">
+          <label class="field login-field" for="profileSelect">
+            <span>Seleccione su perfil</span>
+            <select id="profileSelect">
+              <option value="">Cargando perfiles...</option>
+            </select>
+          </label>
+
+          <label class="field login-field" id="loginTurnField" for="loginTurn">
+            <span>Turno</span>
+            <select id="loginTurn">
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+              <option value="Noche">Noche</option>
+            </select>
+          </label>
+
+          <div id="loginStatus" class="login-status" aria-live="polite">Cargando perfiles...</div>
+          <button id="retryLoginProfilesBtn" class="btn btn-ghost login-retry hidden" type="button">Reintentar</button>
+          <button id="loginBtn" class="btn btn-primary btn-lg login-btn" disabled>Ingresar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- APLICACIÓN -->
+    <section id="mainView" class="app-shell hidden">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">COFACO</div>
+          <div class="brand-sub">HILANDERÍA DE HILOS</div>
+        </div>
+
+        <div class="topbar-center">
+          <div class="app-title">ORDEN DE CAMBIO</div>
+          <div id="sessionMeta" class="session-meta"></div>
+        </div>
+
+        <div class="topbar-actions">
+          <button id="newOrderBtn" class="btn btn-primary">+ Nueva orden</button>
+          <button id="refreshBtn" class="btn btn-ghost">Actualizar</button>
+          <button id="logoutBtn" class="btn btn-ghost">Cambiar perfil</button>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Navegación principal">
+        <button class="tab" data-tab="registry">Registro de órdenes</button>
+        <button class="tab" data-tab="history">Histórico</button>
+      </nav>
+
+      <div class="floating-tab-widgets">
+        <button type="button" class="tab floating-tab-btn" data-tab="preview" title="Visualización" aria-label="Visualización">
+          <span aria-hidden="true">👁️</span>
+        </button>
+        <button type="button" class="tab floating-tab-btn active" data-tab="fill" title="Llenado" aria-label="Llenado">
+          <span aria-hidden="true">✏️</span>
+        </button>
+      </div>
+
+      <main class="content">
+        <!-- TAB LLENADO -->
+        <section id="tab-fill" class="tab-panel active">
+          <div class="page-head">
+            <div>
+              <h2>Llenado de Orden de Cambio</h2>
+              <p class="muted">Formulario digital optimizado para uso en celular y computadora.</p>
+            </div>
+            <div id="orderBadge" class="status-badge status-neutral">Sin orden activa</div>
+          </div>
+
+          <div class="flow-card">
+            <div class="flow-title-row">
+              <strong>Flujo visual</strong>
+              <span class="muted small">Informativo: no bloquea acciones.</span>
+            </div>
+            <div id="flowSteps" class="flow-steps"></div>
+          </div>
+
+          <form id="orderForm" autocomplete="off">
+            <section class="card">
+              <div class="section-title">1. Datos generales de la regulación</div>
+              <div class="form-grid form-grid-3">
+                <label class="field">
+                  <span>Fecha</span>
+                  <input id="orderDate" type="date" />
+                </label>
+
+                <label class="field">
+                  <span>Máquina</span>
+                  <select id="machineSelect"></select>
+                </label>
+
+                <label class="field">
+                  <span>Turno</span>
+                  <select id="orderShift">
+                    <option>Mañana</option>
+                    <option>Tarde</option>
+                    <option>Noche</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>De Ne</span>
+                  <input id="fromNe" type="text" placeholder="Ej. 30/1" />
+                </label>
+
+                <label class="field">
+                  <span>A Ne</span>
+                  <input id="toNe" type="text" placeholder="Ej. 40/1" />
+                </label>
+
+                <label class="field" id="supervisorField">
+                  <span>Jefe de turno / Supervisor</span>
+                  <select id="supervisorName">
+                    <option value="">Seleccione...</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="info-strip">
+                <strong>Nota de integración futura:</strong>
+                La programación de Jefe de Planta provendrá del módulo de Control de Piso.
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="section-title">2. Horas de control de cambio</div>
+              <div class="form-grid form-grid-4">
+                <label class="field time-field">
+                  <span>Empezó el cambio</span>
+                  <div class="input-action">
+                    <input id="startTime" type="time" />
+                    <button type="button" class="mini-btn" data-now-target="startTime">Ahora</button>
+                  </div>
+                </label>
+
+                <label class="field time-field">
+                  <span>Terminó el cambio</span>
+                  <div class="input-action">
+                    <input id="endTime" type="time" />
+                    <button type="button" class="mini-btn" data-now-target="endTime">Ahora</button>
+                  </div>
+                </label>
+
+                <label class="field" id="mechanicField">
+                  <span>Mecánico</span>
+                  <select id="mechanicSelect">
+                    <option value="">Seleccione...</option>
+                    <option>Mecánico 1</option>
+                    <option>Mecánico 2</option>
+                    <option>Mecánico 3</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>Revisión / Estado visual</span>
+                  <input id="visualStatus" type="text" readonly />
+                </label>
+              </div>
+
+              <label class="field">
+                <span>Observación</span>
+                <textarea id="observations" rows="3" placeholder="Anotar observaciones o detalles adicionales del cambio..."></textarea>
+              </label>
+            </section>
+
+            <section class="card">
+              <div class="section-title">3. Control de producción y parámetros en planta</div>
+              <div class="form-grid form-grid-4">
+                <label class="field">
+                  <span>Control de producción</span>
+                  <input id="productionControl" type="text" placeholder="Ingreso manual" />
+                </label>
+
+                <label class="field">
+                  <span>RPM Cil. Frontal</span>
+                  <input id="rpmMechanic" type="number" min="0" step="1" placeholder="RPM declarada" />
+                </label>
+
+                <label class="field">
+                  <span>Mts/Min</span>
+                  <input id="metersMinute" type="number" min="0" step="0.01" placeholder="Ingreso manual" />
+                </label>
+
+                <label class="field">
+                  <span>Asistente D.T.</span>
+                  <input id="assistantDT" type="text" placeholder="Aún no se llena" readonly />
+                </label>
+              </div>
+
+              <div class="info-strip">
+                <strong>Nota de integración futura:</strong>
+                estos parámetros podrán autocompletarse desde una ficha técnica asociada a la máquina / artículo / título.
+              </div>
+            </section>
+
+            <section class="card" id="rpmValidationCard">
+              <div class="section-title">4. Validación de RPM</div>
+              <div class="rpm-layout">
+                <div class="form-grid form-grid-3 rpm-inputs">
+                  <label class="field">
+                    <span>RPM declarada por mecánico</span>
+                    <input id="rpmDeclaredMirror" type="number" readonly />
+                  </label>
+
+                  <label class="field">
+                    <span>RPM medida con tacómetro</span>
+                    <input id="rpmMeasured" type="number" min="0" step="1" placeholder="Registrar medición" />
+                  </label>
+
+                  <div class="metric-box" id="rpmDifferenceBox">
+                    <span class="metric-label">Diferencia</span>
+                    <strong id="rpmDifferenceValue">—</strong>
+                    <small id="rpmDifferencePercent">Tolerancia ±5%</small>
+                  </div>
+                </div>
+
+                <div class="rpm-actions">
+                  <button type="button" id="approveRpmBtn" class="btn btn-success">Aprobar y firmar</button>
+                  <button type="button" id="rejectRpmBtn" class="btn btn-danger">Rechazar y firmar</button>
+                </div>
+              </div>
+
+              <p class="muted small">
+                La tolerancia es una ayuda visual. No impide aprobar o rechazar manualmente.
+              </p>
+
+              <div id="rpmAttemptsList" class="rpm-attempts"></div>
+            </section>
+
+            <section class="card hidden" id="correctionCard">
+              <div class="section-title">4B. Regulación corregida</div>
+              <div class="form-grid form-grid-3">
+                <label class="field">
+                  <span>Nueva RPM declarada</span>
+                  <input id="correctedRpm" type="number" min="0" step="1" placeholder="Nueva RPM" />
+                </label>
+
+                <label class="field" style="grid-column: span 2">
+                  <span>Observación / detalle de la corrección</span>
+                  <textarea id="correctionNote" rows="2" placeholder="Describa el ajuste realizado..."></textarea>
+                </label>
+              </div>
+              <div class="card-actions">
+                <button type="button" id="saveCorrectionBtn" class="btn btn-primary">Guardar regulación corregida</button>
+              </div>
+              <div id="mechanicCorrectionsList" class="rpm-attempts"></div>
+            </section>
+
+            <section class="card" id="labCard">
+              <div class="section-title">5. Laboratorio</div>
+              <div class="lab-row">
+                <div>
+                  <strong>Confirmación de recepción</strong>
+                  <div id="labReceiptInfo" class="muted">Pendiente de recepción.</div>
+                </div>
+                <div class="lab-row-actions">
+                  <button type="button" id="approveCleaningBtn" class="btn btn-success hidden">Se aprobó limpieza</button>
+                  <button type="button" id="rejectCleaningBtn" class="btn btn-danger hidden">No se aprobó limpieza</button>
+                  <button type="button" id="labReceivedBtn" class="btn btn-blue">Recibido y firmar</button>
+                </div>
+              </div>
+
+              <div id="cleaningAttemptsList" class="rpm-attempts"></div>
+            </section>
+
+            <section class="card hidden" id="cleaningCorrectionCard">
+              <div class="section-title">5B. Corrección de limpieza</div>
+              <p class="muted small">Laboratorio no aprobó la limpieza. Corrija lo necesario en planta y confirme abajo.</p>
+              <div class="card-actions">
+                <button type="button" id="cleaningCorrectedBtn" class="btn btn-primary">Corregido</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="section-title">6. Firmas</div>
+              <div id="signaturesGrid" class="signature-grid"></div>
+              <p class="muted small">Cada perfil firma desde su propia acción (Firmar y guardar, Aprobar/Rechazar y firmar, Recibido y firmar).</p>
+            </section>
+
+            <section class="card">
+              <div class="section-title">7. Cierre de orden</div>
+              <div id="closeChecklist" class="checklist"></div>
+              <div class="card-actions">
+                <button type="button" id="closeOrderBtn" class="btn btn-success">Cerrar orden</button>
+                <button type="button" id="forceCloseBtn" class="btn btn-warning">Forzar cierre</button>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="section-title">8. Historial detallado</div>
+              <div id="historyTimeline" class="timeline"></div>
+            </section>
+
+            <div class="sticky-actions">
+              <button type="button" id="supervisorSignBtn" class="btn btn-primary hidden">Firmar y guardar</button>
+              <button type="button" id="sendToMechanicBtn" class="btn btn-blue hidden" disabled>Enviar a Mecánico</button>
+              <button type="button" id="startRegulationBtn" class="btn btn-blue hidden">Iniciar regulación</button>
+              <button type="button" id="mechanicSignBtn" class="btn btn-primary hidden">Firmar y guardar</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- TAB VISUALIZACIÓN -->
+        <section id="tab-preview" class="tab-panel">
+          <div class="page-head">
+            <div>
+              <h2>Visualización</h2>
+              <p class="muted">Vista compacta inspirada en el formato físico real.</p>
+            </div>
+            <div class="preview-actions">
+              <button id="previewEditBtn" class="btn btn-ghost">Volver a editar</button>
+            </div>
+          </div>
+
+          <div id="previewEmptyBanner" class="alert alert-info hidden">
+            Orden de Cambio vacía. Ve a "Registro de Ordenes" y presiona "Abrir" para visualizar una orden real.
+          </div>
+
+          <article id="printableOrder" class="paper-order">
+            <header class="paper-header">
+              <div>
+                <div class="paper-brand">COFACO</div>
+                <div class="paper-brand-sub">HILANDERÍA DE HILOS</div>
+              </div>
+              <div class="paper-title">
+                <strong>ORDEN DE CAMBIO</strong>
+                <small>Planificación / Trazabilidad de planta</small>
+              </div>
+            </header>
+
+            <div class="paper-rule"></div>
+
+            <section class="paper-section">
+              <h3>1. DATOS GENERALES DE LA REGULACIÓN</h3>
+              <div class="paper-grid paper-grid-3" id="previewGeneral"></div>
+            </section>
+
+            <section class="paper-section">
+              <h3>2. HORAS DE CONTROL DE CAMBIO</h3>
+              <div class="paper-grid paper-grid-4" id="previewTimes"></div>
+              <div class="paper-observation">
+                <span>OBSERVACIÓN:</span>
+                <div id="previewObservation">-</div>
+              </div>
+            </section>
+
+            <section class="paper-section">
+              <h3>3. CONTROL DE PRODUCCIÓN Y PARÁMETROS EN PLANTA</h3>
+              <div class="paper-metrics" id="previewMetrics"></div>
+            </section>
+
+            <section class="paper-section">
+              <h3>4. VALIDACIÓN Y TRAZABILIDAD</h3>
+              <div class="paper-grid paper-grid-3" id="previewValidation"></div>
+            </section>
+
+            <section class="paper-signatures" id="previewSignatures"></section>
+            <footer class="paper-footer" id="previewFooter"></footer>
+          </article>
+        </section>
+
+        <!-- TAB REGISTRO -->
+        <section id="tab-registry" class="tab-panel">
+          <div class="page-head">
+            <div>
+              <h2>Registro de órdenes</h2>
+              <p class="muted">Órdenes generadas durante la prueba del frontend.</p>
+            </div>
+          </div>
+
+          <div class="filters-row">
+            <input id="registrySearch" type="search" placeholder="Buscar por orden, máquina, mecánico..." />
+            <select id="registryGroupFilter">
+              <option value="">Todos los grupos</option>
+              <option value="pendientes">Pendientes</option>
+              <option value="enProceso">En proceso</option>
+              <option value="rechazadas">Rechazadas</option>
+              <option value="completadas">Completadas</option>
+            </select>
+            <select id="registryStatusFilter">
+              <option value="">Todos los estados</option>
+            </select>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>N.º Orden</th>
+                  <th>Máquina</th>
+                  <th>Fecha</th>
+                  <th>De Ne → A Ne</th>
+                  <th>Turno</th>
+                  <th>Mecánico</th>
+                  <th>Estado</th>
+                  <th>Última actualización</th>
+                </tr>
+              </thead>
+              <tbody id="registryBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TAB HISTORICO -->
+        <section id="tab-history" class="tab-panel">
+          <div class="page-head">
+            <div>
+              <h2>Histórico</h2>
+              <p class="muted">Detalle de cuándo cada perfil recibió, firmó y envió, por Orden de Cambio.</p>
+            </div>
+          </div>
+
+          <div class="filters-row">
+            <select id="historyOrderSelect">
+              <option value="">Seleccione una orden...</option>
+            </select>
+            <select id="historyProfileFilter">
+              <option value="">Todos los perfiles</option>
+              <option value="SUPERVISOR">Supervisor de Turno</option>
+              <option value="MECANICO">Mecánico</option>
+              <option value="PCP">PCP Hilandería</option>
+              <option value="LABORATORIO">Laboratorio</option>
+            </select>
+            <select id="historyKindFilter">
+              <option value="">Todos los tipos</option>
+              <option value="recibe">Recibió</option>
+              <option value="firma">Firmó</option>
+              <option value="envia">Envió</option>
+            </select>
+          </div>
+
+          <div id="historyEmpty" class="timeline-empty">Seleccione una Orden de Cambio para ver el detalle de tiempos.</div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Hora</th>
+                  <th>Perfil</th>
+                  <th>Tipo</th>
+                  <th>Evento</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+    </section>
+  </div>
+
+  <!-- MODAL RECHAZO LIMPIEZA -->
+  <div id="rejectCleaningModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>No se aprobó limpieza</h3>
+        <button class="icon-btn" data-close-modal="rejectCleaningModal">×</button>
+      </div>
+      <div class="modal-body">
+        <label class="field">
+          <span>Motivo del rechazo de limpieza</span>
+          <textarea id="rejectCleaningReason" rows="4" placeholder="Describa la irregularidad encontrada..."></textarea>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close-modal="rejectCleaningModal">Cancelar</button>
+        <button id="confirmRejectCleaningBtn" class="btn btn-danger">Confirmar rechazo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RECHAZO -->
+  <div id="rejectModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Rechazar validación de RPM</h3>
+        <button class="icon-btn" data-close-modal="rejectModal">×</button>
+      </div>
+      <div class="modal-body">
+        <label class="field">
+          <span>Motivo del rechazo</span>
+          <textarea id="rejectReason" rows="4" placeholder="Describa la irregularidad encontrada..."></textarea>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close-modal="rejectModal">Cancelar</button>
+        <button id="confirmRejectBtn" class="btn btn-danger">Confirmar rechazo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CIERRE FORZADO -->
+  <div id="forceCloseModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Forzar cierre de orden</h3>
+        <button class="icon-btn" data-close-modal="forceCloseModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="forceCloseMissing" class="alert alert-danger"></div>
+        <label class="field">
+          <span>Aclaración obligatoria</span>
+          <textarea id="forceCloseNote" rows="4" placeholder="Explique por qué se cerrará la orden incompleta..."></textarea>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close-modal="forceCloseModal">Cancelar</button>
+        <button id="confirmForceCloseBtn" class="btn btn-warning">Cerrar con observaciones</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CARGA: visible mientras hay una acción en curso contra Google Sheets -->
+  <div id="loadingOverlay" class="loading-overlay hidden" role="status" aria-live="polite">
+    <div class="loading-card">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <p id="loadingOverlayText" class="loading-text">Sincronizando con Google Sheets...</p>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/login.js"></script>
+  <script src="js/tab-fill.js"></script>
+  <script src="js/tab-preview.js"></script>
+  <script src="js/tab-registry.js"></script>
+  <script src="js/tab-history.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+.input-action{display:grid;grid-template-columns:1fr auto;gap:8px}
+.mini-btn{
+  border:1px solid #cfd7e3;
+  background:#f8fafc;
+  border-radius:9px;
+  padding:0 12px;
+  font-weight:800;
+}
+
+.flow-title-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.flow-steps{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px;
+  margin-top:14px;
+}
+.flow-step{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px 10px;
+  background:#fafbfd;
+  min-height:74px;
+}
+.flow-step strong{display:block;font-size:.78rem;margin-bottom:5px}
+.flow-step small{color:var(--muted)}
+.flow-step.complete{border-color:#b7dec0;background:#effaf2}
+.flow-step.active{border-color:#9abcf2;background:#edf5ff}
+.flow-step.pending{border-color:#f3d572;background:#fff9e7}
+.flow-step.rejected{border-color:#efaaaa;background:#fff0f0}
+
+.rpm-layout{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
+.rpm-actions{display:flex;flex-wrap:wrap;gap:8px}
+.metric-box{
+  min-height:76px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#f8fafc;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.metric-box.ok{background:#eaf8ee;border-color:#84c995}
+.metric-box.bad{background:#ffebeb;border-color:#e99090}
+.metric-label{font-size:.72rem;color:var(--muted);font-weight:800;text-transform:uppercase}
+.metric-box strong{font-size:1.15rem;margin:3px 0}
+
+.rpm-attempts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.rpm-attempt-item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fafbfd;font-size:.82rem}
+.rpm-attempt-item.approved{border-color:#b7dec0;background:#effaf2}
+.rpm-attempt-item.rejected{border-color:#efaaaa;background:#fff0f0}
+
+.lab-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.lab-row-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.signature-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+.signature-card{
+  border:1px solid var(--line);
+  background:#fafbfd;
+  border-radius:12px;
+  padding:13px;
+}
+.signature-card.signed{background:#effaf2;border-color:#b7dec0}
+.signature-card strong{display:block;font-size:.82rem}
+.signature-card small{display:block;color:var(--muted);margin-top:4px}
+
+.checklist{display:grid;gap:8px}
+.check-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px 12px;
+}
+.check-item.ok{background:#effaf2;border-color:#b7dec0}
+.check-item.missing{background:#fff1f1;border-color:#efb7b7}
+.check-dot{width:12px;height:12px;border-radius:50%;background:#c4ccd8}
+.check-item.ok .check-dot{background:var(--green)}
+.check-item.missing .check-dot{background:var(--red)}
+
+.timeline{display:flex;flex-direction:column;gap:10px}
+.timeline-empty{
+  border:1px dashed #ccd5e1;
+  border-radius:12px;
+  color:var(--muted);
+  padding:20px;
+  text-align:center;
+}
+.timeline-item{
+  display:grid;
+  grid-template-columns:100px 1fr;
+  gap:14px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fbfcfe;
+}
+.timeline-time{font-size:.76rem;color:var(--muted);font-weight:800}
+.timeline-content strong{font-size:.84rem}
+.timeline-content p{margin:5px 0 0;color:#58657b;font-size:.84rem;white-space:pre-line}
+.timeline-changes{margin:6px 0 0;padding-left:18px;font-size:.8rem;color:#58657b}
+.timeline-changes li{margin-bottom:2px}
+
+.sticky-actions{
+  position:sticky;
+  bottom:10px;
+  z-index:30;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  background:rgba(255,255,255,.94);
+  border:1px solid var(--line);
+  backdrop-filter:blur(10px);
+  padding:10px;
+  border-radius:14px;
+  box-shadow:0 8px 30px rgba(23,32,51,.12);
+}
+
+@media (max-width:1000px){
+  .flow-steps{grid-template-columns:repeat(3,1fr)}
+  .signature-grid{grid-template-columns:repeat(2,1fr)}
+  .rpm-layout{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .flow-steps{grid-template-columns:1fr 1fr}
+  .signature-grid{grid-template-columns:1fr}
+  .lab-row{align-items:flex-start;flex-direction:column}
+  .lab-row-actions,.rpm-actions,.sticky-actions{flex-direction:column}
+  .lab-row-actions{width:100%}
+  .sticky-actions .btn,.rpm-actions .btn,.lab-row-actions .btn{width:100%}
+  .timeline-item{grid-template-columns:1fr}
+}
