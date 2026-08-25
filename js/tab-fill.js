@@ -231,6 +231,7 @@
       const updated = await dataAdapter.sendToMechanic(order);
       replaceOrder(updated);
       loadOrderToForm(updated);
+      setTab("registry");
     } catch (err) {
       await handleApiError(err, order);
     } finally {
@@ -286,6 +287,7 @@
       const updated = await dataAdapter.signMechanic(order);
       replaceOrder(updated);
       loadOrderToForm(updated);
+      setTab("registry");
     } catch (err) {
       await handleApiError(err, order);
     } finally {
@@ -347,6 +349,7 @@
       });
       replaceOrder(updated);
       loadOrderToForm(updated);
+      setTab("registry");
     } catch (err) {
       await handleApiError(err, order);
     } finally {
@@ -398,6 +401,7 @@
       replaceOrder(updated);
       loadOrderToForm(updated);
       closeModal("rejectModal");
+      setTab("registry");
     } catch (err) {
       await handleApiError(err, order);
     } finally {
@@ -500,6 +504,7 @@
       const updated = await dataAdapter.validateCleaning(order, { decision: "APROBADA" });
       replaceOrder(updated);
       loadOrderToForm(updated);
+      setTab("registry");
     } catch (err) {
       await handleApiError(err, order);
     } finally {
@@ -543,6 +548,7 @@
       replaceOrder(updated);
       loadOrderToForm(updated);
       closeModal("rejectCleaningModal");
+      setTab("registry");
     } catch (err) {
       await handleApiError(err, order);
     } finally {
