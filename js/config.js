@@ -5,7 +5,7 @@
  * Mantener las URLs fuera de app.js.
  */
 window.APP_CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycby7bxMeyvEa-PfzDoWQ_3FeZSt6ANMbOAKzOvZyZdP-S0PiXlErXou79qHRvglmg-W4Tw/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbyjd25ukRICvmwDNnPlaZ6QMMAC1GAayJhS6AGvmyTrODMzQXWiIhfCeWopW4t_DLNvVw/exec",
   SPREADSHEET_ID: "1gHCqSveYXu16x_Ip3MeLa09J1lNmafHW8Gm1OczvCbk",
   SHEETS_URL: "https://docs.google.com/spreadsheets/d/1gHCqSveYXu16x_Ip3MeLa09J1lNmafHW8Gm1OczvCbk/edit",
   RPM_TOLERANCE_PERCENT: 5,
