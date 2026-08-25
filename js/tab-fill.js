@@ -249,10 +249,6 @@
       alert("Esta orden no está pendiente de asignación a Mecánico.");
       return;
     }
-    if (!order.mechanic) {
-      alert("Seleccione su nombre en el campo Mecánico antes de iniciar la regulación.");
-      return;
-    }
     const btn = $("startRegulationBtn");
     const previousText = btn.textContent;
     btn.disabled = true;
@@ -275,10 +271,6 @@
     if (!order) return;
     if (order.status !== "EN_REGULACION") {
       alert("La orden debe estar en regulación antes de firmar y enviar a validación RPM.");
-      return;
-    }
-    if (!order.rpmMechanic) {
-      alert("Registre la RPM declarada antes de firmar.");
       return;
     }
     if (!canSign(order, "MECANICO")) {
@@ -333,10 +325,6 @@
     const order = collectFormIntoOrder();
     if (!order) return;
     const declared = getCurrentDeclaredRpm(order);
-    if (!declared || !order.rpmMeasured) {
-      alert("Debe existir una RPM declarada por el mecánico y una RPM medida con tacómetro.");
-      return;
-    }
 
     // Perfil que firma la decisión: PCP normalmente, o SUPERVISOR cuando sustituye a PCP.
     const signProfile = state.session.profile;
