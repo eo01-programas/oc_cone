@@ -4,6 +4,19 @@
   const { $, $$, formatDateTime } = OC.util;
   const { state, STATUS_GROUPS, ORDER_STATUS_META, escapeHtml, safeText, statusClass } = OC;
 
+  function getMostRecentOrderId() {
+    let bestId = null;
+    let bestTime = -Infinity;
+    state.orders.forEach((o) => {
+      const time = o.updatedAt ? new Date(o.updatedAt).getTime() : NaN;
+      if (!Number.isNaN(time) && time > bestTime) {
+        bestTime = time;
+        bestId = o.id;
+      }
+    });
+    return bestId;
+  }
+
   function populateStatusFilters() {
     $("registryStatusFilter").innerHTML =
       `<option value="">Todos los estados</option>` +
@@ -16,6 +29,7 @@
     const group = $("registryGroupFilter")?.value || "";
     const status = $("registryStatusFilter")?.value || "";
     const canDelete = !!OC.getPermissions().canDeleteOrder;
+    const mostRecentId = getMostRecentOrderId();
 
     const rows = state.orders.filter(o => {
       const matchesText = [o.code, o.machine, o.mechanic, o.fromNe, o.toNe]
@@ -31,19 +45,19 @@
     }
 
     tbody.innerHTML = rows.map(o => `
-      <tr>
+      <tr class="${o.id === mostRecentId ? "row-recent" : ""}">
         <td class="row-actions-cell">
           <button class="row-action" data-open-order="${o.id}">Abrir</button>
           ${canDelete ? `<button class="row-action row-action-danger" data-delete-order="${o.id}" title="Eliminar orden" aria-label="Eliminar orden ${escapeHtml(o.code)}">Eliminar</button>` : ""}
         </td>
-        <td><strong>${escapeHtml(o.code)}</strong></td>
+        <td>${formatDateTime(o.updatedAt)}</td>
         <td>${escapeHtml(safeText(o.machine))}</td>
-        <td>${escapeHtml(safeText(o.date))}</td>
         <td>${escapeHtml(safeText(o.fromNe))} -> ${escapeHtml(safeText(o.toNe))}</td>
+        <td>${escapeHtml(safeText(o.date))}</td>
         <td>${escapeHtml(safeText(o.shift))}</td>
         <td>${escapeHtml(safeText(o.mechanic))}</td>
+        <td><strong>${escapeHtml(o.code)}</strong></td>
         <td><span class="status-badge ${statusClass(o.status)}">${escapeHtml(ORDER_STATUS_META[o.status]?.label || o.status)}</span></td>
-        <td>${formatDateTime(o.updatedAt)}</td>
       </tr>
     `).join("");
 
