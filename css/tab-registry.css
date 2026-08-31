@@ -6,6 +6,9 @@
 .data-table th,.data-table td{padding:12px 14px;border-bottom:1px solid #edf0f5;text-align:left;font-size:.82rem}
 .data-table th{background:#f8fafc;color:#566279;font-size:.72rem;text-transform:uppercase}
 .data-table tbody tr:hover{background:#fbfcfe}
+.data-table tbody tr.row-recent{background:#fff0df}
+.data-table tbody tr.row-recent:hover{background:#ffe6c4}
+.data-table tbody tr.row-recent td:first-child{box-shadow:inset 3px 0 0 var(--orange)}
 .row-action{
   border:1px solid #d5dde8;
   background:#fff;
