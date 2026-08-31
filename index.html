@@ -196,7 +196,7 @@
 
             <section class="card">
               <div class="section-title">3. Control de producción y parámetros en planta</div>
-              <div class="form-grid form-grid-4">
+              <div class="form-grid form-grid-2">
                 <label class="field">
                   <span>Control de producción</span>
                   <input id="productionControl" type="text" placeholder="Ingreso manual" />
@@ -207,12 +207,7 @@
                   <input id="rpmMechanic" type="number" min="0" step="1" placeholder="RPM declarada" />
                 </label>
 
-                <label class="field">
-                  <span>Mts/Min</span>
-                  <input id="metersMinute" type="number" min="0" step="0.01" placeholder="Ingreso manual" />
-                </label>
-
-                <label class="field">
+                <label class="field hidden">
                   <span>Asistente D.T.</span>
                   <input id="assistantDT" type="text" placeholder="Aún no se llena" readonly />
                 </label>
@@ -225,7 +220,7 @@
             </section>
 
             <section class="card" id="rpmValidationCard">
-              <div class="section-title">4. Validación de RPM</div>
+              <div class="section-title">4. Validación de RPM <span class="section-title-tag">(PCP HILANDERIA)</span></div>
               <div class="rpm-layout">
                 <div class="form-grid form-grid-3 rpm-inputs">
                   <label class="field">
@@ -238,11 +233,16 @@
                     <input id="rpmMeasured" type="number" min="0" step="1" placeholder="Registrar medición" />
                   </label>
 
-                  <div class="metric-box" id="rpmDifferenceBox">
+                  <div class="metric-box hidden" id="rpmDifferenceBox">
                     <span class="metric-label">Diferencia</span>
                     <strong id="rpmDifferenceValue">—</strong>
                     <small id="rpmDifferencePercent">Tolerancia ±5%</small>
                   </div>
+
+                  <label class="field">
+                    <span>Mts/Min</span>
+                    <input id="metersMinute" type="number" min="0" step="0.01" placeholder="Ingreso manual" />
+                  </label>
                 </div>
 
                 <div class="rpm-actions">
@@ -250,10 +250,6 @@
                   <button type="button" id="rejectRpmBtn" class="btn btn-danger">Rechazar y firmar</button>
                 </div>
               </div>
-
-              <p class="muted small">
-                La tolerancia es una ayuda visual. No impide aprobar o rechazar manualmente.
-              </p>
 
               <div id="rpmAttemptsList" class="rpm-attempts"></div>
             </section>
@@ -418,14 +414,14 @@
               <thead>
                 <tr>
                   <th></th>
-                  <th>N.º Orden</th>
+                  <th>Última actualización</th>
                   <th>Máquina</th>
-                  <th>Fecha</th>
                   <th>De Ne → A Ne</th>
+                  <th>Fecha</th>
                   <th>Turno</th>
                   <th>Mecánico</th>
+                  <th>N.º Orden</th>
                   <th>Estado</th>
-                  <th>Última actualización</th>
                 </tr>
               </thead>
               <tbody id="registryBody"></tbody>
