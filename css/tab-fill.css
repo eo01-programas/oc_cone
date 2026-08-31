@@ -28,6 +28,7 @@
 .flow-step.pending{border-color:#f3d572;background:#fff9e7}
 .flow-step.rejected{border-color:#efaaaa;background:#fff0f0}
 
+#rpmValidationCard{background:#edf5ff;border-color:#bcd6f5}
 .rpm-layout{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
 .rpm-actions{display:flex;flex-wrap:wrap;gap:8px}
 .metric-box{
