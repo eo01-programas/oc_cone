@@ -55,7 +55,9 @@ button{cursor:pointer}
   border-bottom:1px solid var(--line);
   padding-bottom:10px;
 }
+.section-title-tag{font-weight:600;color:var(--muted);letter-spacing:normal}
 .form-grid{display:grid;gap:14px}
+.form-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .form-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .form-grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .field{display:flex;flex-direction:column;gap:7px}
@@ -194,7 +196,7 @@ textarea{resize:vertical}
   .form-grid-3{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:640px){
-  .form-grid-4,.form-grid-3{grid-template-columns:1fr}
+  .form-grid-4,.form-grid-3,.form-grid-2{grid-template-columns:1fr}
   .card-actions{flex-direction:column}
   .card-actions .btn{width:100%}
 }
