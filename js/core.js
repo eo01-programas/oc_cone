@@ -64,7 +64,6 @@ window.OC = window.OC || {};
       canViewHistory: false,
       canValidateRPM: true,
       editableSections: ["section4_rpm_validation"],
-      editableFields: ["metersMinute"],
       canDeleteOrder: false
     },
     LABORATORIO: {
