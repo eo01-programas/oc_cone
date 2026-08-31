@@ -28,9 +28,9 @@
     observations: "section2_times",
     productionControl: "section3_parameters",
     rpmMechanic: "section3_parameters",
-    metersMinute: "section3_parameters",
     assistantDT: "section3_parameters",
-    rpmMeasured: "section4_rpm_validation"
+    rpmMeasured: "section4_rpm_validation",
+    metersMinute: "section4_rpm_validation"
   };
   const SELECT_FIELD_IDS = new Set(["machineSelect", "orderShift", "mechanicSelect", "supervisorName"]);
   // Bloqueado para todos los perfiles sin excepción (incluso los que tienen fullEdit): todavía no se llena.
