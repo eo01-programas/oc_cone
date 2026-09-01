@@ -19,6 +19,8 @@
     orderDate: "section1_general",
     machineSelect: "section1_general",
     orderShift: "section1_general",
+    articulo: "section1_general",
+    lote: "section1_general",
     fromNe: "section1_general",
     toNe: "section1_general",
     supervisorName: "section1_general",
@@ -121,6 +123,8 @@
     $("orderDate").value = order.date || isoDate();
     $("machineSelect").value = order.machine || "";
     $("orderShift").value = order.shift || state.session.shift || "Mañana";
+    $("articulo").value = order.articulo || "";
+    $("lote").value = order.lote || "";
     $("fromNe").value = order.fromNe || "";
     $("toNe").value = order.toNe || "";
     $("mechanicSelect").value = order.mechanic || "";
@@ -153,6 +157,8 @@
     order.date = $("orderDate").value;
     order.machine = $("machineSelect").value;
     order.shift = $("orderShift").value;
+    order.articulo = $("articulo").value.trim();
+    order.lote = $("lote").value.trim();
     order.fromNe = $("fromNe").value.trim();
     order.toNe = $("toNe").value.trim();
     order.mechanic = $("mechanicSelect").value;
