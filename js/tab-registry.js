@@ -32,7 +32,7 @@
     const mostRecentId = getMostRecentOrderId();
 
     const rows = state.orders.filter(o => {
-      const matchesText = [o.code, o.machine, o.mechanic, o.fromNe, o.toNe]
+      const matchesText = [o.code, o.machine, o.mechanic, o.fromNe, o.toNe, o.articulo, o.lote]
         .join(" ").toLowerCase().includes(q);
       const matchesGroup = !group || (STATUS_GROUPS[group] || []).includes(o.status);
       const matchesStatus = !status || o.status === status;
@@ -40,7 +40,7 @@
     });
 
     if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="9" class="muted">No hay ordenes para mostrar.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" class="muted">No hay ordenes para mostrar.</td></tr>`;
       return;
     }
 
@@ -53,6 +53,8 @@
         <td>${formatDateTime(o.updatedAt)}</td>
         <td>${escapeHtml(safeText(o.machine))}</td>
         <td>${escapeHtml(safeText(o.fromNe))} -> ${escapeHtml(safeText(o.toNe))}</td>
+        <td>${escapeHtml(safeText(o.articulo))}</td>
+        <td>${escapeHtml(safeText(o.lote))}</td>
         <td>${escapeHtml(safeText(o.date))}</td>
         <td>${escapeHtml(safeText(o.shift))}</td>
         <td>${escapeHtml(safeText(o.mechanic))}</td>
