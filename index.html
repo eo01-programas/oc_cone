@@ -129,31 +129,36 @@
                   </select>
                 </label>
 
-                <label class="field">
-                  <span>Artículo</span>
-                  <input id="articulo" type="text" placeholder="Material 30/40/30" />
-                </label>
-
-                <label class="field">
-                  <span>Lote</span>
-                  <input id="lote" type="text" placeholder="2026-1405" />
-                </label>
-
-                <label class="field">
-                  <span>De Ne</span>
-                  <input id="fromNe" type="text" placeholder="Ej. 30/1" />
-                </label>
-
-                <label class="field">
-                  <span>A Ne</span>
-                  <input id="toNe" type="text" placeholder="Ej. 40/1" />
-                </label>
-
                 <label class="field" id="supervisorField">
                   <span>Jefe de turno / Supervisor</span>
                   <select id="supervisorName">
                     <option value="">Seleccione...</option>
                   </select>
+                </label>
+
+                <label class="field">
+                  <span>Artículo / Lote (Sale)</span>
+                  <input id="articuloLoteSale" type="text" placeholder="Articulo que sale" />
+                </label>
+
+                <label class="field">
+                  <span>De Ne (Antiguo)</span>
+                  <input id="fromNe" type="text" placeholder="Ej. 30/1" />
+                </label>
+
+                <label class="field">
+                  <span>Artículo (Nuevo)</span>
+                  <input id="articulo" type="text" placeholder="Material 30/40/30" />
+                </label>
+
+                <label class="field">
+                  <span>Lote (Nuevo)</span>
+                  <input id="lote" type="text" placeholder="2026-1405" />
+                </label>
+
+                <label class="field">
+                  <span>A Ne (Nuevo)</span>
+                  <input id="toNe" type="text" placeholder="Ej. 40/1" />
                 </label>
               </div>
 
@@ -426,9 +431,10 @@
                   <th></th>
                   <th>Última actualización</th>
                   <th>Máquina</th>
-                  <th>De Ne → A Ne</th>
-                  <th>Artículo</th>
-                  <th>Lote</th>
+                  <th>De Ne (Antiguo) → A Ne (Nuevo)</th>
+                  <th>Artículo (Nuevo)</th>
+                  <th>Lote (Nuevo)</th>
+                  <th>Artículo / Lote (Sale)</th>
                   <th>Fecha</th>
                   <th>Turno</th>
                   <th>Mecánico</th>
