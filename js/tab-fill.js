@@ -18,6 +18,7 @@
   const FIELD_SECTIONS = {
     orderDate: "section1_general",
     machineSelect: "section1_general",
+    machineNumberSelect: "section1_general",
     orderShift: "section1_general",
     articulo: "section1_general",
     lote: "section1_general",
@@ -35,7 +36,7 @@
     rpmMeasured: "section4_rpm_validation",
     metersMinute: "section4_rpm_validation"
   };
-  const SELECT_FIELD_IDS = new Set(["machineSelect", "orderShift", "mechanicSelect", "supervisorName"]);
+  const SELECT_FIELD_IDS = new Set(["machineSelect", "machineNumberSelect", "orderShift", "mechanicSelect", "supervisorName"]);
   // Bloqueado para todos los perfiles sin excepción (incluso los que tienen fullEdit): todavía no se llena.
   const ALWAYS_LOCKED_FIELDS = new Set(["assistantDT"]);
 
@@ -122,7 +123,9 @@
     if (!order) return;
 
     $("orderDate").value = order.date || isoDate();
-    $("machineSelect").value = order.machine || "";
+    const machineParts = resolveMachineParts(order.machine);
+    $("machineSelect").value = machineParts.tipo;
+    populateMachineNumberOptions(machineParts.tipo, machineParts.numero);
     $("orderShift").value = order.shift || state.session.shift || "Mañana";
     $("articulo").value = order.articulo || "";
     $("lote").value = order.lote || "";
@@ -157,7 +160,9 @@
     const before = JSON.stringify(order);
 
     order.date = $("orderDate").value;
-    order.machine = $("machineSelect").value;
+    const machineTipo = $("machineSelect").value;
+    const machineNumero = $("machineNumberSelect").value;
+    order.machine = machineNumero ? `${machineTipo} ${machineNumero}` : machineTipo;
     order.shift = $("orderShift").value;
     order.articulo = $("articulo").value.trim();
     order.lote = $("lote").value.trim();
@@ -874,14 +879,63 @@
   // ============================================================
   // INICIALIZACIÓN DE LA PESTAÑA
   // ============================================================
-  function populateCatalogs() {
-    const machines = state.catalogs.maquinas.length
-      ? state.catalogs.maquinas.map((item) => item.maquina)
-      : MACHINES;
+  // Máquina / N°-Maq: casillas encadenadas. Si TABLA_MAQUINAS trae datos reales
+  // (tipo + numero por fila), se usan esos; si no, se degrada a la lista fija
+  // MACHINES, intentando separar el numero al final del texto (ej. "Mechera 1").
+  function parseMachineFallback(value) {
+    const str = String(value || "").trim();
+    const match = str.match(/^(.*?)\s+(\d+)$/);
+    if (match) return { tipo: match[1].trim(), numero: match[2] };
+    return { tipo: str, numero: "" };
+  }
 
+  function getMachineTypes() {
+    const seen = new Set();
+    const types = [];
+    const source = state.catalogs.maquinas.length
+      ? state.catalogs.maquinas.map((item) => item.tipo)
+      : MACHINES.map((m) => parseMachineFallback(m).tipo);
+    source.forEach((tipo) => {
+      if (tipo && !seen.has(tipo)) { seen.add(tipo); types.push(tipo); }
+    });
+    return types;
+  }
+
+  function getMachineNumbers(tipo) {
+    if (state.catalogs.maquinas.length) {
+      return state.catalogs.maquinas
+        .filter((item) => item.tipo === tipo && item.numero)
+        .map((item) => item.numero);
+    }
+    return MACHINES
+      .map((m) => parseMachineFallback(m))
+      .filter((p) => p.tipo === tipo && p.numero)
+      .map((p) => p.numero);
+  }
+
+  function resolveMachineParts(fullValue) {
+    const value = String(fullValue || "").trim();
+    if (!value) return { tipo: "", numero: "" };
+    const found = state.catalogs.maquinas.find((item) => item.maquina.toUpperCase() === value.toUpperCase());
+    if (found) return { tipo: found.tipo, numero: found.numero };
+    return parseMachineFallback(value);
+  }
+
+  function populateMachineNumberOptions(tipo, selectedNumero) {
+    const numbers = getMachineNumbers(tipo);
+    const sel = $("machineNumberSelect");
+    sel.innerHTML =
+      `<option value="">Seleccione...</option>` +
+      numbers.map((n) => `<option>${escapeHtml(n)}</option>`).join("");
+    sel.value = numbers.includes(String(selectedNumero || "")) ? selectedNumero : "";
+  }
+
+  function populateCatalogs() {
     $("machineSelect").innerHTML =
       `<option value="">Seleccione una máquina...</option>` +
-      machines.map((machine) => `<option>${escapeHtml(machine)}</option>`).join("");
+      getMachineTypes().map((tipo) => `<option>${escapeHtml(tipo)}</option>`).join("");
+
+    populateMachineNumberOptions($("machineSelect").value, $("machineNumberSelect").value);
 
     $("supervisorName").innerHTML =
       `<option value="">Seleccione...</option>` +
@@ -890,6 +944,10 @@
 
   function init() {
     populateCatalogs();
+
+    $("machineSelect").addEventListener("change", () => {
+      populateMachineNumberOptions($("machineSelect").value, "");
+    });
 
     $$("[data-now-target]").forEach(btn => {
       btn.addEventListener("click", () => {
