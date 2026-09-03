@@ -24,6 +24,7 @@
     fromNe: "section1_general",
     toNe: "section1_general",
     supervisorName: "section1_general",
+    articuloLoteSale: "section1_general",
     startTime: "section2_times",
     endTime: "section2_times",
     mechanicSelect: "section2_times",
@@ -125,6 +126,7 @@
     $("orderShift").value = order.shift || state.session.shift || "Mañana";
     $("articulo").value = order.articulo || "";
     $("lote").value = order.lote || "";
+    $("articuloLoteSale").value = order.articuloLoteSale || "";
     $("fromNe").value = order.fromNe || "";
     $("toNe").value = order.toNe || "";
     $("mechanicSelect").value = order.mechanic || "";
@@ -159,6 +161,7 @@
     order.shift = $("orderShift").value;
     order.articulo = $("articulo").value.trim();
     order.lote = $("lote").value.trim();
+    order.articuloLoteSale = $("articuloLoteSale").value.trim();
     order.fromNe = $("fromNe").value.trim();
     order.toNe = $("toNe").value.trim();
     order.mechanic = $("mechanicSelect").value;
