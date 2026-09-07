@@ -141,7 +141,7 @@
                   </select>
                 </label>
 
-                <label class="field">
+                <label class="field hidden">
                   <span>Artículo / Lote (Sale)</span>
                   <input id="articuloLoteSale" type="text" placeholder="Articulo que sale" />
                 </label>
@@ -153,19 +153,32 @@
 
                 <label class="field">
                   <span>Artículo (Nuevo)</span>
-                  <input id="articulo" type="text" placeholder="Material 30/40/30" />
+                  <input id="articulo" type="text" list="materialOptions" placeholder="Material 30/40/30" />
                 </label>
 
                 <label class="field">
                   <span>Lote (Nuevo)</span>
-                  <input id="lote" type="text" placeholder="2026-1405" />
+                  <input id="lote" type="text" list="loteOptions" placeholder="2026-1405" />
+                </label>
+
+                <label class="field">
+                  <span>Composición</span>
+                  <input id="composicion" type="text" list="composicionOptions" placeholder="Ej. 40/30/30%" />
                 </label>
 
                 <label class="field">
                   <span>A Ne (Nuevo)</span>
-                  <input id="toNe" type="text" placeholder="Ej. 40/1" />
+                  <input id="toNe" type="text" list="tituloOptions" placeholder="Ej. 40/1" />
                 </label>
               </div>
+
+              <!-- Sugerencias desde el catálogo de GESTION_OC (misma Spreadsheet).
+                   Los campos de arriba siguen siendo texto libre: un datalist
+                   sugiere, no restringe, y no da de alta nada en CATALOGO. -->
+              <datalist id="materialOptions"></datalist>
+              <datalist id="loteOptions"></datalist>
+              <datalist id="tituloOptions"></datalist>
+              <datalist id="composicionOptions"></datalist>
 
               <div class="info-strip">
                 <strong>Nota de integración futura:</strong>
