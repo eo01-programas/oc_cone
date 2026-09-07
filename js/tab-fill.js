@@ -22,6 +22,7 @@
     orderShift: "section1_general",
     articulo: "section1_general",
     lote: "section1_general",
+    composicion: "section1_general",
     fromNe: "section1_general",
     toNe: "section1_general",
     supervisorName: "section1_general",
@@ -129,6 +130,7 @@
     $("orderShift").value = order.shift || state.session.shift || "Mañana";
     $("articulo").value = order.articulo || "";
     $("lote").value = order.lote || "";
+    $("composicion").value = order.composicion || "";
     $("articuloLoteSale").value = order.articuloLoteSale || "";
     $("fromNe").value = order.fromNe || "";
     $("toNe").value = order.toNe || "";
@@ -166,6 +168,7 @@
     order.shift = $("orderShift").value;
     order.articulo = $("articulo").value.trim();
     order.lote = $("lote").value.trim();
+    order.composicion = $("composicion").value.trim();
     order.articuloLoteSale = $("articuloLoteSale").value.trim();
     order.fromNe = $("fromNe").value.trim();
     order.toNe = $("toNe").value.trim();
@@ -930,6 +933,15 @@
     sel.value = numbers.includes(String(selectedNumero || "")) ? selectedNumero : "";
   }
 
+  // Datalist de sugerencias para un <input list="..."> — a diferencia de un
+  // <select>, el input conserva su propio texto libre; no hay valor
+  // "seleccionado" que preservar aquí, solo las opciones sugeridas.
+  function populateDatalist(datalistId, items) {
+    const el = $(datalistId);
+    if (!el) return;
+    el.innerHTML = (items || []).map((v) => `<option value="${escapeHtml(v)}"></option>`).join("");
+  }
+
   function populateCatalogs() {
     $("machineSelect").innerHTML =
       `<option value="">Seleccione una máquina...</option>` +
@@ -940,6 +952,13 @@
     $("supervisorName").innerHTML =
       `<option value="">Seleccione...</option>` +
       state.catalogs.supervisores.map((name) => `<option>${escapeHtml(name)}</option>`).join("");
+
+    // Sugerencias desde el catálogo de GESTION_OC (misma Spreadsheet, hoja
+    // CATALOGO). Los campos siguen siendo texto libre — esto solo sugiere.
+    populateDatalist("materialOptions", state.catalogs.materiales);
+    populateDatalist("loteOptions", state.catalogs.lotes);
+    populateDatalist("tituloOptions", state.catalogs.titulos);
+    populateDatalist("composicionOptions", state.catalogs.composiciones);
   }
 
   function init() {
