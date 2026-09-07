@@ -137,7 +137,7 @@ window.OC = window.OC || {};
   const state = {
     session: { profile: "", usuario: "", rol: "", shift: "Mañana" },
     loginProfiles: [],
-    catalogs: { supervisores: [], maquinas: [] },
+    catalogs: { supervisores: [], maquinas: [], materiales: [], lotes: [], titulos: [], composiciones: [] },
     orders: [],
     currentOrderId: null,
     activeTab: "fill"
@@ -324,6 +324,7 @@ window.OC = window.OC || {};
       shift: master.TURNO || state.session.shift || "Mañana",
       articulo: master.ARTICULO || "",
       lote: master.LOTE || "",
+      composicion: master.COMPOSICION || "",
       articuloLoteSale: master.ARTICULO_LOTE_SALE || "",
       fromNe: master.DE_NE || "",
       toNe: master.A_NE || "",
@@ -374,6 +375,7 @@ window.OC = window.OC || {};
       turno: order.shift || "",
       articulo: order.articulo || "",
       lote: order.lote || "",
+      composicion: order.composicion || "",
       articuloLoteSale: order.articuloLoteSale || "",
       deNe: order.fromNe || "",
       aNe: order.toNe || "",
@@ -396,6 +398,7 @@ window.OC = window.OC || {};
       turno: order.shift || "",
       articulo: order.articulo || "",
       lote: order.lote || "",
+      composicion: order.composicion || "",
       articuloLoteSale: order.articuloLoteSale || "",
       deNe: order.fromNe || "",
       aNe: order.toNe || "",
@@ -439,6 +442,10 @@ window.OC = window.OC || {};
       const catalogs = await apiGet("getCatalogs");
       state.catalogs.supervisores = Array.isArray(catalogs.supervisores) ? catalogs.supervisores : [];
       state.catalogs.maquinas = Array.isArray(catalogs.maquinas) ? catalogs.maquinas : [];
+      state.catalogs.materiales = Array.isArray(catalogs.materiales) ? catalogs.materiales : [];
+      state.catalogs.lotes = Array.isArray(catalogs.lotes) ? catalogs.lotes : [];
+      state.catalogs.titulos = Array.isArray(catalogs.titulos) ? catalogs.titulos : [];
+      state.catalogs.composiciones = Array.isArray(catalogs.composiciones) ? catalogs.composiciones : [];
       return state.catalogs;
     },
     async fetchOrders() {
