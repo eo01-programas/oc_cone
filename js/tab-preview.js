@@ -11,7 +11,7 @@
 
   function emptyOrder() {
     return {
-      date: "", mechanic: "", machine: "", articulo: "", lote: "", articuloLoteSale: "", fromNe: "", toNe: "", shift: "",
+      date: "", mechanic: "", machine: "", articulo: "", lote: "", composicion: "", articuloLoteSale: "", fromNe: "", toNe: "", shift: "",
       startTime: "", endTime: "", supervisor: "", status: "", observations: "",
       productionControl: "", rpmMechanic: "", metersMinute: "", assistantDT: "",
       rpmMeasured: "", rpmValidationAttempts: [], laboratoryReceipts: [],
@@ -30,6 +30,7 @@
       paperField("Máquina", data.machine),
       paperField("Artículo (Nuevo)", data.articulo),
       paperField("Lote (Nuevo)", data.lote),
+      paperField("Composición", data.composicion),
       paperField("Artículo / Lote (Sale)", data.articuloLoteSale),
       paperField("De Ne (Antiguo)", data.fromNe),
       paperField("A Ne (Nuevo)", data.toNe),
