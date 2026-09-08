@@ -34,6 +34,10 @@
     productionControl: "section3_parameters",
     rpmMechanic: "section3_parameters",
     assistantDT: "section3_parameters",
+    // PCP debe poder editar la RPM declarada (además de RPM medida y
+    // Mts/Min, que ya podía) — antes era un "espejo" de solo lectura
+    // fijo en el HTML; ver setDeclaredMirrorFromOrder()/updateRpmDifference().
+    rpmDeclaredMirror: "section4_rpm_validation",
     rpmMeasured: "section4_rpm_validation",
     metersMinute: "section4_rpm_validation"
   };
@@ -62,6 +66,10 @@
         el.readOnly = !editable;
       }
     });
+    // Los combobox propios (Máquina/N°-Maq/Supervisor/Artículo/Lote/
+    // Composición/A Ne) leen .disabled/.readOnly del elemento oculto
+    // recién actualizado arriba — hay que decirles que se refresquen.
+    OC.combobox.refreshAll();
   }
 
   // ============================================================
@@ -147,8 +155,14 @@
     $("correctedRpm").value = "";
     $("correctionNote").value = "";
 
+    // Los combobox propios no se enteran de las asignaciones .value de
+    // arriba por su cuenta (van directo al elemento oculto) — se les
+    // pide que reflejen el valor recién cargado.
+    OC.combobox.refreshAll();
+
     syncVisualStatus();
-    updateRpmMirrorAndDifference();
+    setDeclaredMirrorFromOrder(order);
+    updateRpmDifference();
     OC.renderAll();
   }
 
@@ -200,10 +214,25 @@
   }
 
   // ============================================================
-  // SUPERVISOR — Firmar y guardar / Enviar a Mecánico
-  // ============================================================
-  async function signAndSaveSupervisor() {
-    const order = collectFormIntoOrder();
+  // SUPERVISOR — Guardar/Firmar/Enviar (acción atómica delegada)
+  // ------------------------------------------------------------
+  // El Supervisor firma (si esta orden todavía no tiene firma suya) y
+  // completa el tramo mecánico con una firma delegada -- el Supervisor
+  // actúa en nombre del Mecánico -- en una sola llamada atómica al
+  // backend (signAndDelegateSupervisor_ en code.gs, con lock). La orden
+  // salta directo a PENDIENTE_VALIDACION_RPM sin pasar por
+  // PENDIENTE_MECANICO/EN_REGULACION ni esperar al Mecánico presencial.
+  // Este mismo botón también sirve para "migrar" en caliente una orden
+  // que ya estaba en PENDIENTE_MECANICO o EN_REGULACION antes de este
+  // cambio (ver renderActionVisibility en login.js) -- el backend detecta
+  // solo si ya tiene firma de Supervisor y no la duplica.
+  //
+  // Al ser atómica ya no existe el estado intermedio "firmó pero no se
+  // envió" que tenía la versión anterior (dos llamadas encadenadas): o
+  // se completa todo, o no cambia nada y el mismo botón sirve para
+  // reintentar.
+  async function saveSignAndSendSupervisor() {
+    const order = collectFormIntoOrder({ addEditHistory: true });
     if (!order) return;
     if (!canSign(order, "SUPERVISOR")) {
       alert("Se alcanzó el máximo de 5 firmas de Supervisor para esta orden.");
@@ -213,12 +242,13 @@
     const btn = $("supervisorSignBtn");
     const previousText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = "Guardando...";
+    btn.textContent = "Guardando y firmando...";
 
     try {
-      const updated = await dataAdapter.signSupervisor(order);
+      const updated = await dataAdapter.signAndDelegateSupervisor(order);
       replaceOrder(updated);
       loadOrderToForm(updated);
+      setTab("registry");
     } catch (err) {
       await handleApiError(err, order);
     } finally {
@@ -316,12 +346,21 @@
   // ============================================================
   // RPM
   // ============================================================
-  function updateRpmMirrorAndDifference() {
-    const order = getCurrentOrder();
+  // Fija el valor inicial de "RPM declarada" que ve PCP al abrir una orden
+  // (última corrección del Mecánico si existe, si no lo que se declaró al
+  // firmar). Se llama solo al cargar la orden (loadOrderToForm) -- a
+  // partir de ahí el campo es editable por PCP (ver FIELD_SECTIONS) y no
+  // se debe volver a pisar con este valor derivado en cada tecleo.
+  function setDeclaredMirrorFromOrder(order) {
     const declared = order ? getCurrentDeclaredRpm(order) : $("rpmMechanic").value;
     $("rpmDeclaredMirror").value = declared || "";
+  }
 
-    const result = calculateRpmComparison(declared, $("rpmMeasured").value);
+  // Recalcula la diferencia RPM declarada vs. medida leyendo el valor
+  // ACTUAL de rpmDeclaredMirror (el default recién cargado, o lo que PCP
+  // haya editado) -- a diferencia de antes, ya no reescribe ese campo.
+  function updateRpmDifference() {
+    const result = calculateRpmComparison($("rpmDeclaredMirror").value, $("rpmMeasured").value);
     const box = $("rpmDifferenceBox");
     box.classList.remove("ok", "bad");
 
@@ -343,7 +382,9 @@
   async function approveRpm() {
     const order = collectFormIntoOrder();
     if (!order) return;
-    const declared = getCurrentDeclaredRpm(order);
+    // Lee lo que hay en pantalla, no el valor derivado de la orden --
+    // PCP puede haber editado "RPM declarada" (ver setDeclaredMirrorFromOrder).
+    const declared = $("rpmDeclaredMirror").value;
 
     // Perfil que firma la decisión: PCP normalmente, o SUPERVISOR cuando sustituye a PCP.
     const signProfile = state.session.profile;
@@ -378,7 +419,7 @@
   function openRejectModal() {
     const order = collectFormIntoOrder();
     if (!order) return;
-    const declared = getCurrentDeclaredRpm(order);
+    const declared = $("rpmDeclaredMirror").value;
     if (!declared || !order.rpmMeasured) {
       alert("Registre RPM declarada y RPM medida antes de rechazar.");
       return;
@@ -396,7 +437,7 @@
 
     const order = collectFormIntoOrder();
     if (!order) return;
-    const declared = getCurrentDeclaredRpm(order);
+    const declared = $("rpmDeclaredMirror").value;
     const signProfile = state.session.profile;
     if (!canSign(order, signProfile)) {
       alert(`Se alcanzó el máximo de 5 firmas de ${PROFILE_LABELS[signProfile]} para esta orden.`);
@@ -931,6 +972,9 @@
       `<option value="">Seleccione...</option>` +
       numbers.map((n) => `<option>${escapeHtml(n)}</option>`).join("");
     sel.value = numbers.includes(String(selectedNumero || "")) ? selectedNumero : "";
+    // Cubre tanto la carga inicial de una orden como la cascada en vivo
+    // cuando cambia Máquina (ver listener de "change" en init(), abajo).
+    OC.combobox.refreshAll();
   }
 
   // Datalist de sugerencias para un <input list="..."> — a diferencia de un
@@ -962,6 +1006,7 @@
   }
 
   function init() {
+    OC.combobox.init();
     populateCatalogs();
 
     $("machineSelect").addEventListener("change", () => {
@@ -976,15 +1021,15 @@
       });
     });
 
-    ["rpmMechanic", "rpmMeasured"].forEach(id => {
+    ["rpmMechanic", "rpmMeasured", "rpmDeclaredMirror"].forEach(id => {
       $(id).addEventListener("input", () => {
-        updateRpmMirrorAndDifference();
+        updateRpmDifference();
         collectFormIntoOrder();
         renderFlow(getCurrentOrder());
       });
     });
 
-    $("supervisorSignBtn").addEventListener("click", signAndSaveSupervisor);
+    $("supervisorSignBtn").addEventListener("click", saveSignAndSendSupervisor);
     $("sendToMechanicBtn").addEventListener("click", sendToMechanic);
     $("startRegulationBtn").addEventListener("click", startRegulation);
     $("mechanicSignBtn").addEventListener("click", signAndSaveMechanic);
@@ -1009,7 +1054,7 @@
     $$("#orderForm input, #orderForm select, #orderForm textarea").forEach(el => {
       el.addEventListener("change", () => {
         collectFormIntoOrder();
-        updateRpmMirrorAndDifference();
+        updateRpmDifference();
         OC.renderAll();
       });
     });
