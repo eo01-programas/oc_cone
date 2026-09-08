@@ -100,7 +100,10 @@
 
     $("rpmValidationCard").classList.toggle("hidden", p === "MECANICO" && !hasRejection);
     $("labCard").classList.toggle("hidden", p === "MECANICO");
-    $("correctionCard").classList.toggle("hidden", !(p === "MECANICO" && order && order.status === "RECHAZADA_RPM"));
+    // Tras un rechazo de PCP la responsabilidad de corregir es del
+    // Supervisor (no del Mecánico) -- ver PLAN_IMPLEMENTACION_FLUJO_PCP.md.
+    // El Mecánico se conserva por si alguna orden sigue el camino anterior.
+    $("correctionCard").classList.toggle("hidden", !((p === "MECANICO" || p === "SUPERVISOR") && order && order.status === "RECHAZADA_RPM"));
     $("cleaningCorrectionCard").classList.toggle("hidden", !(p === "MECANICO" && order && order.status === "LIMPIEZA_RECHAZADA"));
 
     $("labReceivedBtn").disabled = !order || !["PENDIENTE_LABORATORIO", "LIMPIEZA_CORREGIDA_PENDIENTE_LABORATORIO"].includes(order.status);
@@ -111,9 +114,19 @@
     const permissions = getPermissions(p);
     const show = (id, cond) => $(id).classList.toggle("hidden", !cond);
 
-    show("supervisorSignBtn", p === "SUPERVISOR" && !!order && !CLOSED_STATUSES.includes(order.status));
-    show("sendToMechanicBtn", p === "SUPERVISOR" && !!order && order.status === "CREADA");
-    if (order) $("sendToMechanicBtn").disabled = !order.signatures.SUPERVISOR.length;
+    // "Guardar/Firmar/Enviar" ahora es una acción atómica delegada
+    // (signAndDelegateSupervisor_ en code.gs): firma Supervisor (si hace
+    // falta) + firma mecánica delegada + salto directo a
+    // PENDIENTE_VALIDACION_RPM, sin pasar por el Mecánico. Por eso se
+    // muestra en los 3 estados que la acción acepta -- no solo CREADA --
+    // así el mismo botón también "migra" en caliente una orden que haya
+    // quedado en PENDIENTE_MECANICO o EN_REGULACION de antes de este
+    // cambio (ver PLAN_IMPLEMENTACION_FLUJO_PCP.md, Fase 5). El backend
+    // es retry-safe: si ya tiene firma de Supervisor no la duplica.
+    // "Enviar a Mecánico" (el envío manual del flujo anterior, dos pasos)
+    // queda sin uso en esta ruta -- se deja de mostrar.
+    const supervisorPendingStates = ["CREADA", "PENDIENTE_MECANICO", "EN_REGULACION"];
+    show("supervisorSignBtn", p === "SUPERVISOR" && !!order && supervisorPendingStates.includes(order.status));
 
     show("startRegulationBtn", p === "MECANICO" && !!order && order.status === "PENDIENTE_MECANICO");
     show("mechanicSignBtn", p === "MECANICO" && !!order && order.status === "EN_REGULACION");
