@@ -1,0 +1,75 @@
+/* ============================================================
+   COMBOBOX — Máquina, N°-Maq, Supervisor, Artículo, Lote,
+   Composición, A Ne.
+   ------------------------------------------------------------
+   El elemento real (<select>/<input>, mismo id de siempre) queda
+   oculto (.combo-native-hidden) y sigue siendo la fuente de verdad.
+   El .combo-proxy visible ya hereda el estilo genérico de los demás
+   campos (input,select,textarea{...} en base.css) — mismo blanco,
+   mismo borde, mismo radio, mismo foco lima que el resto del
+   formulario (Turno incluido). Acá solo se agrega lo que ese input
+   genérico no cubre: el panel desplegable propio y los estados de
+   "cerrado" (abre panel, no se escribe) y "bloqueado".
+   ============================================================ */
+
+.combo-native-hidden { display: none; }
+
+.combo-shell { position: relative; }
+
+.combo-proxy { padding-right: 34px; }
+
+/* Flechita que indica "esto se abre", igual que un <select> nativo.
+   Anclada al borde inferior del shell: como el <select> oculto no
+   ocupa espacio y el panel solo aparece al abrir, el proxy visible
+   siempre queda pegado abajo — no depende de la altura del <span>
+   de la etiqueta, que sí varía un poco entre casillas. */
+.combo-shell::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  bottom: 16px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.combo-shell[data-combo-mode="closed"] .combo-proxy { cursor: pointer; }
+
+.combo-shell.is-disabled .combo-proxy {
+  background: var(--surface-2);
+  color: #5e6a7e;
+  cursor: not-allowed;
+}
+.combo-shell.is-disabled::after { opacity: .45; }
+
+.combo-menu {
+  display: none;
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  margin-top: 4px;
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .10);
+}
+.combo-shell.open .combo-menu { display: block; }
+
+.combo-option {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--surface-3);
+  cursor: pointer;
+  font-size: .92rem;
+}
+.combo-option:last-child { border-bottom: none; }
+.combo-option:hover,
+.combo-option.active { background: rgba(183, 223, 35, .18); }
+
+.combo-empty { padding: 11px 12px; color: var(--muted); font-size: 12px; }
