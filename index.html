@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#0f7a3d" />
   <title>Orden de Cambio | Acceso</title>
   <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/combobox.css" />
   <link rel="stylesheet" href="css/chrome.css" />
   <link rel="stylesheet" href="css/login.css" />
   <link rel="stylesheet" href="css/tab-fill.css" />
@@ -115,14 +116,18 @@
                   <input id="orderDate" type="date" />
                 </label>
 
-                <label class="field">
+                <label class="field combo-shell" data-combo-mode="closed">
                   <span>Máquina</span>
-                  <select id="machineSelect"></select>
+                  <select id="machineSelect" class="combo-native-hidden"></select>
+                  <input type="text" class="combo-proxy" readonly autocomplete="off" placeholder="Seleccione..." />
+                  <div class="combo-menu"></div>
                 </label>
 
-                <label class="field">
+                <label class="field combo-shell" data-combo-mode="closed">
                   <span>N°-Maq</span>
-                  <select id="machineNumberSelect"></select>
+                  <select id="machineNumberSelect" class="combo-native-hidden"></select>
+                  <input type="text" class="combo-proxy" readonly autocomplete="off" placeholder="Seleccione..." />
+                  <div class="combo-menu"></div>
                 </label>
 
                 <label class="field">
@@ -134,11 +139,13 @@
                   </select>
                 </label>
 
-                <label class="field" id="supervisorField">
+                <label class="field combo-shell" data-combo-mode="closed" id="supervisorField">
                   <span>Jefe de turno / Supervisor</span>
-                  <select id="supervisorName">
+                  <select id="supervisorName" class="combo-native-hidden">
                     <option value="">Seleccione...</option>
                   </select>
+                  <input type="text" class="combo-proxy" readonly autocomplete="off" placeholder="Seleccione..." />
+                  <div class="combo-menu"></div>
                 </label>
 
                 <label class="field hidden">
@@ -151,34 +158,34 @@
                   <input id="fromNe" type="text" placeholder="Ej. 30/1" />
                 </label>
 
-                <label class="field">
+                <label class="field combo-shell" data-combo-mode="freetext" data-combo-source="materiales">
                   <span>Artículo (Nuevo)</span>
-                  <input id="articulo" type="text" list="materialOptions" placeholder="Material 30/40/30" />
+                  <input id="articulo" type="text" class="combo-native-hidden" />
+                  <input type="text" class="combo-proxy" autocomplete="off" placeholder="Material 30/40/30" />
+                  <div class="combo-menu"></div>
                 </label>
 
-                <label class="field">
+                <label class="field combo-shell" data-combo-mode="freetext" data-combo-source="lotes">
                   <span>Lote (Nuevo)</span>
-                  <input id="lote" type="text" list="loteOptions" placeholder="2026-1405" />
+                  <input id="lote" type="text" class="combo-native-hidden" />
+                  <input type="text" class="combo-proxy" autocomplete="off" placeholder="2026-1405" />
+                  <div class="combo-menu"></div>
                 </label>
 
-                <label class="field">
+                <label class="field combo-shell" data-combo-mode="freetext" data-combo-source="composiciones">
                   <span>Composición</span>
-                  <input id="composicion" type="text" list="composicionOptions" placeholder="Ej. 40/30/30%" />
+                  <input id="composicion" type="text" class="combo-native-hidden" />
+                  <input type="text" class="combo-proxy" autocomplete="off" placeholder="Ej. 40/30/30%" />
+                  <div class="combo-menu"></div>
                 </label>
 
-                <label class="field">
+                <label class="field combo-shell" data-combo-mode="freetext" data-combo-source="titulos">
                   <span>A Ne (Nuevo)</span>
-                  <input id="toNe" type="text" list="tituloOptions" placeholder="Ej. 40/1" />
+                  <input id="toNe" type="text" class="combo-native-hidden" />
+                  <input type="text" class="combo-proxy" autocomplete="off" placeholder="Ej. 40/1" />
+                  <div class="combo-menu"></div>
                 </label>
               </div>
-
-              <!-- Sugerencias desde el catálogo de GESTION_OC (misma Spreadsheet).
-                   Los campos de arriba siguen siendo texto libre: un datalist
-                   sugiere, no restringe, y no da de alta nada en CATALOGO. -->
-              <datalist id="materialOptions"></datalist>
-              <datalist id="loteOptions"></datalist>
-              <datalist id="tituloOptions"></datalist>
-              <datalist id="composicionOptions"></datalist>
 
               <div class="info-strip">
                 <strong>Nota de integración futura:</strong>
@@ -257,8 +264,8 @@
               <div class="rpm-layout">
                 <div class="form-grid form-grid-3 rpm-inputs">
                   <label class="field">
-                    <span>RPM declarada por mecánico</span>
-                    <input id="rpmDeclaredMirror" type="number" readonly />
+                    <span>RPM declarada</span>
+                    <input id="rpmDeclaredMirror" type="number" min="0" step="1" placeholder="RPM declarada" />
                   </label>
 
                   <label class="field">
@@ -352,8 +359,8 @@
             </section>
 
             <div class="sticky-actions">
-              <button type="button" id="supervisorSignBtn" class="btn btn-primary hidden">Firmar y guardar</button>
-              <button type="button" id="sendToMechanicBtn" class="btn btn-blue hidden" disabled>Enviar a Mecánico</button>
+              <button type="button" id="supervisorSignBtn" class="btn btn-primary hidden">Guardar/Firmar/Enviar</button>
+              <button type="button" id="sendToMechanicBtn" class="btn btn-blue hidden">Enviar a Mecánico</button>
               <button type="button" id="startRegulationBtn" class="btn btn-blue hidden">Iniciar regulación</button>
               <button type="button" id="mechanicSignBtn" class="btn btn-primary hidden">Firmar y guardar</button>
             </div>
@@ -586,6 +593,7 @@
 
   <script src="js/config.js"></script>
   <script src="js/core.js"></script>
+  <script src="js/combobox.js"></script>
   <script src="js/login.js"></script>
   <script src="js/tab-fill.js"></script>
   <script src="js/tab-preview.js"></script>
