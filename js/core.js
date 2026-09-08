@@ -500,6 +500,19 @@ window.OC = window.OC || {};
       });
       return mapBackendOrder(result);
     },
+    // Accion atomica: firma Supervisor (si hace falta) + firma mecanica
+    // delegada + salto directo a PENDIENTE_VALIDACION_RPM, en una sola
+    // llamada — reemplaza la secuencia signSupervisor + sendToMechanic
+    // para el flujo sin firma presencial del Mecanico.
+    async signAndDelegateSupervisor(order) {
+      const result = await apiPost("signAndDelegateSupervisor", {
+        ORDER_ID: order.id,
+        expectedVersion: order.version,
+        usuario: state.session.usuario || PROFILE_LABELS.SUPERVISOR,
+        data: orderToSupervisorPayload(order)
+      });
+      return mapBackendOrder(result);
+    },
     async validateRPM(order, validation) {
       const result = await apiPost("validateRpm", {
         ORDER_ID: order.id,
@@ -518,7 +531,8 @@ window.OC = window.OC || {};
       const result = await apiPost("correctMechanicRpm", {
         ORDER_ID: order.id,
         expectedVersion: order.version,
-        usuario: state.session.usuario || PROFILE_LABELS.MECANICO,
+        profile: state.session.profile,
+        usuario: state.session.usuario || PROFILE_LABELS[state.session.profile] || PROFILE_LABELS.MECANICO,
         rpmDeclarada: correction.newDeclaredRpm,
         note: correction.note || ""
       });
