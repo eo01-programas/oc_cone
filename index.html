@@ -57,36 +57,23 @@
     <!-- APLICACIÓN -->
     <section id="mainView" class="app-shell hidden">
       <header class="topbar">
-        <div class="brand">
-          <div class="brand-mark">COFACO</div>
-          <div class="brand-sub">HILANDERÍA DE HILOS</div>
-        </div>
-
         <div class="topbar-center">
-          <div class="app-title">ORDEN DE CAMBIO</div>
+          <div id="appTitle" class="app-title">ORDEN DE CAMBIO</div>
           <div id="sessionMeta" class="session-meta"></div>
-        </div>
-
-        <div class="topbar-actions">
-          <button id="newOrderBtn" class="btn btn-primary">+ Nueva orden</button>
-          <button id="refreshBtn" class="btn btn-ghost">Actualizar</button>
-          <button id="logoutBtn" class="btn btn-ghost">Cambiar perfil</button>
         </div>
       </header>
 
-      <nav class="tabs" aria-label="Navegación principal">
-        <button class="tab" data-tab="registry">Registro de órdenes</button>
-        <button class="tab" data-tab="history">Histórico</button>
+      <nav class="global-tabs" aria-label="Secciones principales">
+        <button type="button" class="global-tab active" data-section="orden">Orden de Cambio</button>
+        <button type="button" class="global-tab" data-section="paros">Control de Paros</button>
+        <button id="newOrderBtn" class="btn btn-primary global-tabs-cta" data-for-section="orden">+ Orden</button>
       </nav>
 
-      <div class="floating-tab-widgets">
-        <button type="button" class="tab floating-tab-btn" data-tab="preview" title="Visualización" aria-label="Visualización">
-          <span aria-hidden="true">👁️</span>
-        </button>
-        <button type="button" class="tab floating-tab-btn active" data-tab="fill" title="Llenado" aria-label="Llenado">
-          <span aria-hidden="true">✏️</span>
-        </button>
-      </div>
+      <div id="section-orden" class="global-section active">
+      <nav class="tabs" aria-label="Navegación principal">
+        <button class="tab" data-tab="registry">Registro</button>
+        <button class="tab" data-tab="history">Histórico</button>
+      </nav>
 
       <main class="content">
         <!-- TAB LLENADO -->
@@ -94,7 +81,6 @@
           <div class="page-head">
             <div>
               <h2>Llenado de Orden de Cambio</h2>
-              <p class="muted">Formulario digital optimizado para uso en celular y computadora.</p>
             </div>
             <div id="orderBadge" class="status-badge status-neutral">Sin orden activa</div>
           </div>
@@ -153,9 +139,11 @@
                   <input id="articuloLoteSale" type="text" placeholder="Articulo que sale" />
                 </label>
 
-                <label class="field">
+                <label class="field combo-shell" data-combo-mode="freetext" data-combo-source="titulos">
                   <span>De Ne (Antiguo)</span>
-                  <input id="fromNe" type="text" placeholder="Ej. 30/1" />
+                  <input id="fromNe" type="text" class="combo-native-hidden" />
+                  <input type="text" class="combo-proxy" autocomplete="off" placeholder="Ej. 30/1" />
+                  <div class="combo-menu"></div>
                 </label>
 
                 <label class="field combo-shell" data-combo-mode="freetext" data-combo-source="materiales">
@@ -237,7 +225,7 @@
             <section class="card">
               <div class="section-title">3. Control de producción y parámetros en planta</div>
               <div class="form-grid form-grid-2">
-                <label class="field">
+                <label class="field hidden">
                   <span>Control de producción</span>
                   <input id="productionControl" type="text" placeholder="Ingreso manual" />
                 </label>
@@ -370,12 +358,14 @@
         <!-- TAB VISUALIZACIÓN -->
         <section id="tab-preview" class="tab-panel">
           <div class="page-head">
-            <div>
-              <h2>Visualización</h2>
-              <p class="muted">Vista compacta inspirada en el formato físico real.</p>
-            </div>
-            <div class="preview-actions">
-              <button id="previewEditBtn" class="btn btn-ghost">Volver a editar</button>
+            <div class="preview-title-row">
+              <button id="previewEditBtn" class="btn btn-ghost preview-back-btn" title="Volver a editar" aria-label="Volver a editar">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>
+              </button>
+              <h2>Formato Visual</h2>
             </div>
           </div>
 
@@ -431,11 +421,15 @@
           <div class="page-head">
             <div>
               <h2>Registro de órdenes</h2>
-              <p class="muted">Órdenes generadas durante la prueba del frontend.</p>
             </div>
+            <label class="filter-switch">
+              <span class="filter-switch-text">Filtros</span>
+              <input type="checkbox" id="registryFilterToggle" role="switch" />
+              <span class="filter-switch-track" aria-hidden="true"></span>
+            </label>
           </div>
 
-          <div class="filters-row">
+          <div class="filters-row hidden" id="registryFilters">
             <input id="registrySearch" type="search" placeholder="Buscar por orden, máquina, mecánico..." />
             <select id="registryGroupFilter">
               <option value="">Todos los grupos</option>
@@ -519,6 +513,48 @@
         </section>
 
       </main>
+      </div><!-- /#section-orden -->
+
+      <div id="section-paros" class="global-section">
+        <div class="paros-empty">
+          <div class="paros-empty-icon" aria-hidden="true">🛠️</div>
+          <h2>Control de Paros</h2>
+          <p>Sección en construcción. Próximamente el registro y seguimiento de paros de máquina.</p>
+        </div>
+      </div>
+
+      <!-- WIDGET MAESTRO: acciones flotantes (vistas + actualizar + salir) -->
+      <div class="view-dial" id="viewDial">
+        <div class="view-dial-items">
+          <button type="button" class="tab view-dial-item" data-tab="preview" data-for-section="orden" title="Ver" aria-label="Ver">
+            <span class="view-dial-icon" aria-hidden="true">👁️</span>
+            <span class="view-dial-label">Ver</span>
+          </button>
+          <button type="button" class="tab view-dial-item" data-tab="fill" data-for-section="orden" title="Registrar" aria-label="Registrar">
+            <span class="view-dial-icon" aria-hidden="true">✏️</span>
+            <span class="view-dial-label">Registrar</span>
+          </button>
+          <button id="refreshBtn" type="button" class="view-dial-item" data-for-section="orden" title="Actualizar" aria-label="Actualizar">
+            <span class="view-dial-icon" aria-hidden="true">
+              <svg class="icon-refresh" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <polyline points="1 20 1 14 7 14" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
+            </span>
+            <span class="view-dial-label">Actualizar</span>
+          </button>
+          <button id="logoutBtn" type="button" class="view-dial-item" title="Cambiar perfil" aria-label="Cambiar perfil">
+            <span class="view-dial-icon" aria-hidden="true">🚪</span>
+            <span class="view-dial-label">Cambiar perfil</span>
+          </button>
+        </div>
+        <button type="button" class="view-dial-toggle" id="viewDialToggle" aria-expanded="false" aria-label="Acciones">
+          <svg class="view-dial-chevron" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 15 12 9 18 15" />
+          </svg>
+        </button>
+      </div>
     </section>
   </div>
 
