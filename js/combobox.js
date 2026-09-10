@@ -127,7 +127,16 @@
     if (openDescriptor === descriptor) openDescriptor = null;
   }
 
+  function anyMenuOpen() {
+    return shells.some((d) => d.shell.classList.contains("open"));
+  }
+
   function renderMenu(descriptor, query) {
+    // Solo un combo abierto a la vez: cerrar cualquier otro antes de abrir
+    // este (cubre "toco uno, no elijo nada, toco otro" sin depender del
+    // timing del blur).
+    shells.forEach((d) => { if (d !== descriptor) d.shell.classList.remove("open"); });
+
     const items = getSourceItems(descriptor);
     const q = normalizeText(query);
     const filtered = descriptor.mode === "closed"
@@ -229,6 +238,15 @@
         closeAllMenus();
       }
     });
+
+    // A diferencia del modo freetext (que ya cierra su menú en el blur al
+    // confirmar el texto), el modo closed no tenía cierre al perder el
+    // foco — quedaba abierto al saltar a otra casilla con Tab.
+    proxyEl.addEventListener("blur", () => {
+      setTimeout(() => {
+        if (openDescriptor === descriptor) closeMenu(descriptor);
+      }, 0);
+    });
   }
 
   // ------------------------------------------------------------
@@ -294,5 +312,5 @@
     refreshAll();
   }
 
-  OC.combobox = { init, refreshAll };
+  OC.combobox = { init, refreshAll, closeAllMenus, anyMenuOpen };
 })();
