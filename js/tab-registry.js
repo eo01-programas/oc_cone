@@ -4,6 +4,20 @@
   const { $, $$, formatDateTime } = OC.util;
   const { state, STATUS_GROUPS, ORDER_STATUS_META, escapeHtml, safeText, statusClass } = OC;
 
+  // El registro se ordena SIEMPRE por fecha de creación descendente (la
+  // más nueva primero). Editar una orden no cambia su posición — solo se
+  // sombrea (ver getMostRecentOrderId, que sí mira la última edición).
+  // Por defecto solo se ven las N primeras; el resto queda plegado.
+  const REGISTRY_COLLAPSED_COUNT = 5;
+  let registryExpanded = false;
+
+  function orderCreatedTime(o) {
+    const t = o.createdAt ? new Date(o.createdAt).getTime() : 0;
+    return Number.isNaN(t) ? 0 : t;
+  }
+
+  // Orden con la última edición más reciente -> es la que se sombrea.
+  // (Distinto del orden de la lista, que va por fecha de creación.)
   function getMostRecentOrderId() {
     let bestId = null;
     let bestTime = -Infinity;
@@ -37,14 +51,32 @@
       const matchesGroup = !group || (STATUS_GROUPS[group] || []).includes(o.status);
       const matchesStatus = !status || o.status === status;
       return matchesText && matchesGroup && matchesStatus;
-    });
+    }).sort((a, b) =>
+      orderCreatedTime(b) - orderCreatedTime(a) ||
+      String(b.code || "").localeCompare(String(a.code || ""))
+    );
 
     if (!rows.length) {
       tbody.innerHTML = `<tr><td colspan="12" class="muted">No hay ordenes para mostrar.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = rows.map(o => `
+    const collapsible = rows.length > REGISTRY_COLLAPSED_COUNT;
+    const visibleRows = (collapsible && !registryExpanded) ? rows.slice(0, REGISTRY_COLLAPSED_COUNT) : rows;
+
+    const toggleRowHtml = collapsible ? `
+      <tr class="registry-toggle-row">
+        <td colspan="12">
+          <button type="button" class="registry-toggle" data-registry-toggle>
+            <span class="registry-toggle-arrow">${registryExpanded ? "&#9652;" : "&#9662;"}</span>
+            ${registryExpanded
+              ? "Ver menos"
+              : `Ver todas las ordenes (${rows.length})`}
+          </button>
+        </td>
+      </tr>` : "";
+
+    tbody.innerHTML = visibleRows.map(o => `
       <tr class="${o.id === mostRecentId ? "row-recent" : ""}">
         <td class="row-actions-cell">
           <button class="row-action" data-open-order="${o.id}">Abrir</button>
@@ -62,7 +94,14 @@
         <td><strong>${escapeHtml(o.code)}</strong></td>
         <td><span class="status-badge ${statusClass(o.status)}">${escapeHtml(ORDER_STATUS_META[o.status]?.label || o.status)}</span></td>
       </tr>
-    `).join("");
+    `).join("") + toggleRowHtml;
+
+    $$("[data-registry-toggle]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        registryExpanded = !registryExpanded;
+        renderRegistry();
+      });
+    });
 
     $$("[data-open-order]").forEach(btn => {
       btn.addEventListener("click", async () => {
@@ -124,6 +163,19 @@
     $("registrySearch").addEventListener("input", renderRegistry);
     $("registryGroupFilter").addEventListener("change", renderRegistry);
     $("registryStatusFilter").addEventListener("change", renderRegistry);
+
+    // Switch Filtros: encendido muestra el panel; apagado lo oculta Y
+    // limpia búsqueda/grupo/estado (la lista vuelve a mostrar todo).
+    $("registryFilterToggle").addEventListener("change", (e) => {
+      const on = e.target.checked;
+      $("registryFilters").classList.toggle("hidden", !on);
+      if (!on) {
+        $("registrySearch").value = "";
+        $("registryGroupFilter").value = "";
+        $("registryStatusFilter").value = "";
+        renderRegistry();
+      }
+    });
   }
 
   OC.tabRegistry = { init, renderRegistry, populateStatusFilters };
