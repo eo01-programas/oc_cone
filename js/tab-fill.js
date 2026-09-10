@@ -419,11 +419,9 @@
   function openRejectModal() {
     const order = collectFormIntoOrder();
     if (!order) return;
-    const declared = $("rpmDeclaredMirror").value;
-    if (!declared || !order.rpmMeasured) {
-      alert("Registre RPM declarada y RPM medida antes de rechazar.");
-      return;
-    }
+    // Se puede rechazar sin RPM/m·s registrados (igual que el backend, que
+    // solo exige el motivo para una RECHAZADA). El único requisito lo pide
+    // confirmReject(): el motivo.
     $("rejectReason").value = "";
     openModal("rejectModal");
   }
