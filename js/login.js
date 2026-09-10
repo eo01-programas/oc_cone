@@ -163,6 +163,22 @@
       $("mainView").classList.remove("hidden");
 
       applyProfilePermissions();
+
+      // Arranca siempre en la sección global "Orden de Cambio" (por si
+      // quedó en "Control de Paros" de una sesión anterior).
+      OC.showSection("orden");
+
+      // Mientras se traen los datos del backend (con el modal de carga
+      // encima), mostrar la vista imprimible vacía en vez del formulario
+      // de llenado vacío, que era lo que quedaba activo por defecto.
+      // Toggle directo de clases (no setTab): es un estado transitorio,
+      // no debe entrar al historial ni disparar validaciones de
+      // "orden abierta". Después de sincronizar, setTab("registry")
+      // deja todo en su lugar.
+      $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === "preview"));
+      $$(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "tab-preview"));
+      OC.tabPreview.renderPreview();
+
       await OC.syncFromBackend();
       OC.setTab("registry");
     } catch (err) {
@@ -185,6 +201,9 @@
     $("profileSelect").value = "";
     updateTurnVisibility();
     $("loginBtn").disabled = true;
+    // Limpia el marcador de historial de navegación: el próximo login
+    // vuelve a fijar una base limpia (ver syncNavHistory en core.js).
+    try { history.replaceState({ oc: false }, "", location.pathname + location.search); } catch (e) {}
   }
 
   function init() {
