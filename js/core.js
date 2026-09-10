@@ -927,6 +927,121 @@ window.OC = window.OC || {};
   function openModal(id) { $(id).classList.remove("hidden"); }
   function closeModal(id) { $(id).classList.add("hidden"); }
 
+  // ============================================================
+  // NAVEGACIÓN: SECCIONES GLOBALES + SUB-TABS + BOTÓN "ATRÁS"
+  // ------------------------------------------------------------
+  // Dos niveles: sección global ("orden" / "paros") y, dentro de
+  // "orden", los sub-tabs (registry/history/fill/preview). Cada cambio
+  // de nivel deja UNA entrada en el historial del navegador, así el
+  // gesto/botón "atrás" del celular recorre: modal → combobox/casilla
+  // → sub-tab anterior → sección global anterior → salir de la app.
+  // Cada sección global recuerda su último sub-tab durante la sesión.
+  // ============================================================
+  const GLOBAL_SECTIONS = ["orden", "paros"];
+  let activeSection = "orden";
+  const sectionLastTab = { orden: "registry" };
+  let navApplying = false; // true mientras aplicamos un estado (popstate o cambio interno): no re-empujar historial
+
+  function navHash(section, tab) {
+    return section === "orden" ? "#" + (tab || "registry") : "#paros";
+  }
+
+  function currentNavEntry() {
+    return {
+      oc: true,
+      section: activeSection,
+      tab: activeSection === "orden" ? state.activeTab : null
+    };
+  }
+
+  function syncNavHistory() {
+    if (navApplying) return;
+    try {
+      const entry = currentNavEntry();
+      const cur = history.state;
+      const url = navHash(entry.section, entry.tab);
+      if (!cur || !cur.oc) {
+        history.replaceState(entry, "", url);
+      } else if (cur.section !== entry.section || cur.tab !== entry.tab) {
+        history.pushState(entry, "", url);
+      }
+    } catch (e) { /* history no disponible en este contexto — ignorar */ }
+  }
+
+  function consumeBackPress() {
+    // Re-empuja el estado actual para "consumir" el atrás sin movernos.
+    try {
+      const entry = currentNavEntry();
+      history.pushState(entry, "", navHash(entry.section, entry.tab));
+    } catch (e) {}
+  }
+
+  // Solo aplica la UI de una sección global (clases). No toca historial
+  // ni recuerda/restaura sub-tab.
+  const SECTION_TITLES = { orden: "ORDEN DE CAMBIO", paros: "CONTROL DE PAROS" };
+
+  function showSection(name) {
+    activeSection = name;
+    $$(".global-tab").forEach(t => t.classList.toggle("active", t.dataset.section === name));
+    $$(".global-section").forEach(s => s.classList.toggle("active", s.id === `section-${name}`));
+    $$("[data-for-section]").forEach(g => g.classList.toggle("hidden", g.dataset.forSection !== name));
+    const title = $("appTitle");
+    if (title && SECTION_TITLES[name]) title.textContent = SECTION_TITLES[name];
+  }
+
+  function setSection(name) {
+    if (!GLOBAL_SECTIONS.includes(name) || name === activeSection) return;
+    if (activeSection === "orden") sectionLastTab.orden = state.activeTab;
+
+    showSection(name);
+
+    if (name === "orden") {
+      navApplying = true;
+      try { setTab(sectionLastTab.orden || "registry"); } finally { navApplying = false; }
+    }
+    syncNavHistory();
+  }
+
+  function applyNavState(st) {
+    if (st.section && st.section !== activeSection) {
+      if (activeSection === "orden") sectionLastTab.orden = state.activeTab;
+      showSection(st.section);
+    }
+    if (st.section === "orden" && st.tab && st.tab !== state.activeTab) {
+      setTab(st.tab); // el guard navApplying evita que re-empuje historial
+    }
+  }
+
+  function handleBackNavigation(event) {
+    // 1) Modal abierto -> cerrarlo, nada más.
+    const openModals = $$(".modal-backdrop:not(.hidden)");
+    if (openModals.length) {
+      openModals.forEach(m => m.classList.add("hidden"));
+      consumeBackPress();
+      return;
+    }
+
+    // 2) Combobox desplegado o casilla del formulario con foco -> solo
+    //    cierra el desplegable / quita el foco.
+    const comboOpen = !!(OC.combobox && OC.combobox.anyMenuOpen && OC.combobox.anyMenuOpen());
+    const active = document.activeElement;
+    const fieldFocused = !!(active && active.closest && active.closest("#orderForm")
+      && /^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName));
+    if (comboOpen || fieldFocused) {
+      if (OC.combobox && OC.combobox.closeAllMenus) OC.combobox.closeAllMenus();
+      if (active && active.blur) active.blur();
+      consumeBackPress();
+      return;
+    }
+
+    // 3) Estado destino nuestro -> aplicarlo (sub-tab y/o sección). Si no
+    //    lo es, el usuario está saliendo de la app: no hacemos nada.
+    if (event.state && event.state.oc) {
+      navApplying = true;
+      try { applyNavState(event.state); } finally { navApplying = false; }
+    }
+  }
+
   function setTab(name) {
     const visibleTabs = OC.login.getVisibleTabs();
     if (visibleTabs && !visibleTabs.includes(name)) name = visibleTabs[0];
@@ -942,6 +1057,8 @@ window.OC = window.OC || {};
     if (name === "history") {
       OC.tabHistory.onShow();
     }
+
+    syncNavHistory();
   }
 
   // Dispatcher: cada módulo de pestaña resuelve su propio render.
@@ -968,24 +1085,41 @@ window.OC = window.OC || {};
     $("newOrderBtn").addEventListener("click", () => OC.tabFill.startNewOrder());
     $("refreshBtn").addEventListener("click", async () => {
       const btn = $("refreshBtn");
-      const previousText = btn.textContent;
       btn.disabled = true;
-      btn.textContent = "Actualizando...";
+      btn.classList.add("is-syncing"); // gira el ícono mientras sincroniza
       try {
         await syncFromBackend({ checkLogin: true });
-        btn.textContent = "Actualizado";
-        setTimeout(() => { btn.textContent = previousText; }, 1200);
       } catch (err) {
         alert("No se pudo sincronizar con Google Sheets.");
-        btn.textContent = previousText;
       } finally {
+        btn.classList.remove("is-syncing");
         btn.disabled = false;
       }
     });
     $$(".tab").forEach(tab => tab.addEventListener("click", () => setTab(tab.dataset.tab)));
+    $$(".global-tab").forEach(gt => gt.addEventListener("click", () => setSection(gt.dataset.section)));
     $$("[data-close-modal]").forEach(btn => {
       btn.addEventListener("click", () => closeModal(btn.dataset.closeModal));
     });
+
+    // Widget maestro de vistas (speed-dial Llenado / Visualización).
+    // El cambio de vista lo maneja el handler genérico de .tab de arriba;
+    // acá solo se abre/cierra el desplegable.
+    const dial = $("viewDial");
+    const dialToggle = $("viewDialToggle");
+    if (dial && dialToggle) {
+      const setDialOpen = (open) => {
+        dial.classList.toggle("open", open);
+        dialToggle.setAttribute("aria-expanded", String(open));
+      };
+      dialToggle.addEventListener("click", () => setDialOpen(!dial.classList.contains("open")));
+      $$(".view-dial-item").forEach(item => item.addEventListener("click", () => setDialOpen(false)));
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#viewDial")) setDialOpen(false);
+      });
+    }
+
+    window.addEventListener("popstate", handleBackNavigation);
   }
 
   Object.assign(window.OC, {
@@ -998,7 +1132,7 @@ window.OC = window.OC || {};
     ApiError, describeApiError,
     getCurrentOrder, persist, generateTemporaryOrderCode, addHistory, getActorName,
     safeText, escapeHtml, statusClass, getLatestRpmAttempt, getCurrentDeclaredRpm,
-    createBlankOrder, calculateRpmComparison, openModal, closeModal, setTab, renderAll, initNav,
+    createBlankOrder, calculateRpmComparison, openModal, closeModal, setTab, setSection, showSection, renderAll, initNav,
     canSign, registerSignature, generateSignatureCode
   });
 })();
