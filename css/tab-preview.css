@@ -1,4 +1,11 @@
-.preview-actions{display:flex;gap:8px}
+.preview-title-row{display:flex;align-items:center;gap:12px}
+.preview-back-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:7px 9px;
+  line-height:1;
+}
 .paper-order{
   max-width:980px;
   margin:0 auto 30px;
@@ -68,8 +75,6 @@
   .paper-grid-4,.paper-metrics,.paper-signatures{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:640px){
-  .preview-actions{flex-direction:column}
-  .preview-actions .btn{width:100%}
   .paper-order{padding:14px;border-radius:5px}
   .paper-grid-3,.paper-grid-4,.paper-metrics,.paper-signatures{grid-template-columns:1fr 1fr}
 }
