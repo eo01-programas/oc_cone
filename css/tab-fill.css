@@ -1,3 +1,16 @@
+/* Sombreado verde de la casilla activa (foco) en el formulario de
+   llenado. Solo se aplica a los campos realmente editables: se excluyen
+   los bloqueados por permisos (readonly / disabled / combo .is-disabled). */
+#orderForm input:not([readonly]):focus,
+#orderForm textarea:not([readonly]):focus,
+#orderForm select:not(:disabled):focus,
+#orderForm .combo-shell:not(.is-disabled) .combo-proxy:focus{
+  border-color:var(--green);
+  background:#e9f7ed;
+  box-shadow:0 0 0 3px rgba(46,157,80,.22);
+  outline:none;
+}
+
 .input-action{display:grid;grid-template-columns:1fr auto;gap:8px}
 .mini-btn{
   border:1px solid #cfd7e3;
