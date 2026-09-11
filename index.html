@@ -64,10 +64,13 @@
         </div>
       </header>
 
+      <!-- Widget flotante: fijo arriba a la izquierda, independiente del
+           encabezado (position:fixed, igual criterio que #viewDial). -->
+      <button id="newOrderBtn" type="button" class="btn btn-primary topbar-new-order" data-for-section="orden">+ Orden</button>
+
       <nav class="global-tabs" aria-label="Secciones principales">
         <button type="button" class="global-tab active" data-section="orden">Orden de Cambio</button>
         <button type="button" class="global-tab" data-section="paros">Control de Paros</button>
-        <button id="newOrderBtn" class="btn btn-primary global-tabs-cta" data-for-section="orden">+ Orden</button>
       </nav>
 
       <div id="section-orden" class="global-section active">
@@ -232,7 +235,7 @@
                 </label>
 
                 <label class="field">
-                  <span>RPM Cil. Frontal</span>
+                  <span>RPM - Ficha Técnica</span>
                   <input id="rpmMechanic" type="number" min="0" step="1" placeholder="RPM declarada" />
                 </label>
 
@@ -258,7 +261,7 @@
                   </label>
 
                   <label class="field">
-                    <span>RPM medida con tacómetro</span>
+                    <span>RPM - Tacómetro</span>
                     <input id="rpmMeasured" type="number" min="0" step="1" placeholder="Registrar medición" />
                   </label>
 
@@ -302,49 +305,14 @@
               <div id="mechanicCorrectionsList" class="rpm-attempts"></div>
             </section>
 
-            <section class="card" id="labCard">
-              <div class="section-title">5. Laboratorio</div>
-              <div class="lab-row">
-                <div>
-                  <strong>Confirmación de recepción</strong>
-                  <div id="labReceiptInfo" class="muted">Pendiente de recepción.</div>
-                </div>
-                <div class="lab-row-actions">
-                  <button type="button" id="approveCleaningBtn" class="btn btn-success hidden">Se aprobó limpieza</button>
-                  <button type="button" id="rejectCleaningBtn" class="btn btn-danger hidden">No se aprobó limpieza</button>
-                  <button type="button" id="labReceivedBtn" class="btn btn-blue">Recibido y firmar</button>
-                </div>
-              </div>
-
-              <div id="cleaningAttemptsList" class="rpm-attempts"></div>
-            </section>
-
-            <section class="card hidden" id="cleaningCorrectionCard">
-              <div class="section-title">5B. Corrección de limpieza</div>
-              <p class="muted small">Laboratorio no aprobó la limpieza. Corrija lo necesario en planta y confirme abajo.</p>
-              <div class="card-actions">
-                <button type="button" id="cleaningCorrectedBtn" class="btn btn-primary">Corregido</button>
-              </div>
-            </section>
-
             <section class="card">
-              <div class="section-title">6. Firmas</div>
-              <div id="signaturesGrid" class="signature-grid"></div>
-              <p class="muted small">Cada perfil firma desde su propia acción (Firmar y guardar, Aprobar/Rechazar y firmar, Recibido y firmar).</p>
-            </section>
-
-            <section class="card">
-              <div class="section-title">7. Cierre de orden</div>
-              <div id="closeChecklist" class="checklist"></div>
+              <div class="section-title">5. Firmas</div>
               <div class="card-actions">
                 <button type="button" id="closeOrderBtn" class="btn btn-success">Cerrar orden</button>
                 <button type="button" id="forceCloseBtn" class="btn btn-warning">Forzar cierre</button>
               </div>
-            </section>
-
-            <section class="card">
-              <div class="section-title">8. Historial detallado</div>
-              <div id="historyTimeline" class="timeline"></div>
+              <div id="signaturesGrid" class="signature-grid"></div>
+              <p class="muted small">Cada perfil firma desde su propia acción (Firmar y guardar, Aprobar/Rechazar y firmar, Recibido y firmar).</p>
             </section>
 
             <div class="sticky-actions">
@@ -371,7 +339,7 @@
           </div>
 
           <div id="previewEmptyBanner" class="alert alert-info hidden">
-            Orden de Cambio vacía. Ve a "Registro de Ordenes" y presiona "Abrir" para visualizar una orden real.
+            Orden de Cambio vacía. Ve a "Ordenes Generadas" y presiona "Abrir" para visualizar una orden real.
           </div>
 
           <article id="printableOrder" class="paper-order">
@@ -421,7 +389,7 @@
         <section id="tab-registry" class="tab-panel">
           <div class="page-head">
             <div>
-              <h2>Registro de órdenes</h2>
+              <h2>Ordenes Generadas</h2>
             </div>
             <label class="filter-switch">
               <span class="filter-switch-text">Filtros</span>
@@ -607,26 +575,6 @@
         </button>
       </div>
     </section>
-  </div>
-
-  <!-- MODAL RECHAZO LIMPIEZA -->
-  <div id="rejectCleaningModal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-head">
-        <h3>No se aprobó limpieza</h3>
-        <button class="icon-btn" data-close-modal="rejectCleaningModal">×</button>
-      </div>
-      <div class="modal-body">
-        <label class="field">
-          <span>Motivo del rechazo de limpieza</span>
-          <textarea id="rejectCleaningReason" rows="4" placeholder="Describa la irregularidad encontrada..."></textarea>
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" data-close-modal="rejectCleaningModal">Cancelar</button>
-        <button id="confirmRejectCleaningBtn" class="btn btn-danger">Confirmar rechazo</button>
-      </div>
-    </div>
   </div>
 
   <!-- MODAL RECHAZO -->
