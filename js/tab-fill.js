@@ -505,142 +505,12 @@
     }
   }
 
-  // ============================================================
-  // LABORATORIO — Recepción, ciclo de Limpieza (aprobar/rechazar), corrección del Mecánico
-  // ============================================================
-  const LAB_RECEIPT_VALID_STATUSES = ["PENDIENTE_LABORATORIO", "LIMPIEZA_CORREGIDA_PENDIENTE_LABORATORIO"];
-
-  async function registerLabReceipt() {
-    const order = collectFormIntoOrder();
-    if (!order) return;
-    if (!LAB_RECEIPT_VALID_STATUSES.includes(order.status)) {
-      alert("Esta acción no aplica en el estado actual de la orden.");
-      return;
-    }
-    if (!canSign(order, "LABORATORIO")) {
-      alert("Se alcanzó el máximo de 5 firmas de Laboratorio para esta orden.");
-      return;
-    }
-
-    const btn = $("labReceivedBtn");
-    const previousText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "Recibiendo...";
-
-    try {
-      const updated = await dataAdapter.registerLabReceipt(order);
-      replaceOrder(updated);
-      loadOrderToForm(updated);
-    } catch (err) {
-      await handleApiError(err, order);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = previousText;
-    }
-  }
-
-  async function approveCleaning() {
-    const order = collectFormIntoOrder();
-    if (!order) return;
-    if (order.status !== "LABORATORIO_RECIBIDO") {
-      alert("Esta acción solo aplica cuando Laboratorio ya recibió la orden.");
-      return;
-    }
-    if (!canSign(order, "LABORATORIO")) {
-      alert("Se alcanzó el máximo de 5 firmas de Laboratorio para esta orden.");
-      return;
-    }
-
-    const btn = $("approveCleaningBtn");
-    const previousText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "Aprobando...";
-
-    try {
-      const updated = await dataAdapter.validateCleaning(order, { decision: "APROBADA" });
-      replaceOrder(updated);
-      loadOrderToForm(updated);
-      setTab("registry");
-    } catch (err) {
-      await handleApiError(err, order);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = previousText;
-    }
-  }
-
-  function openRejectCleaningModal() {
-    const order = collectFormIntoOrder();
-    if (!order) return;
-    if (order.status !== "LABORATORIO_RECIBIDO") {
-      alert("Esta acción solo aplica cuando Laboratorio ya recibió la orden.");
-      return;
-    }
-    $("rejectCleaningReason").value = "";
-    openModal("rejectCleaningModal");
-  }
-
-  async function confirmRejectCleaning() {
-    const reason = $("rejectCleaningReason").value.trim();
-    if (!reason) {
-      alert("El motivo del rechazo de limpieza es obligatorio.");
-      return;
-    }
-
-    const order = collectFormIntoOrder();
-    if (!order) return;
-    if (!canSign(order, "LABORATORIO")) {
-      alert("Se alcanzó el máximo de 5 firmas de Laboratorio para esta orden.");
-      return;
-    }
-
-    const btn = $("confirmRejectCleaningBtn");
-    const previousText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "Rechazando...";
-
-    try {
-      const updated = await dataAdapter.validateCleaning(order, { decision: "RECHAZADA", reason });
-      replaceOrder(updated);
-      loadOrderToForm(updated);
-      closeModal("rejectCleaningModal");
-      setTab("registry");
-    } catch (err) {
-      await handleApiError(err, order);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = previousText;
-    }
-  }
-
-  async function mechanicCleaningCorrected() {
-    const order = collectFormIntoOrder();
-    if (!order) return;
-    if (order.status !== "LIMPIEZA_RECHAZADA") {
-      alert("Solo se puede confirmar la corrección cuando la limpieza fue rechazada.");
-      return;
-    }
-    if (!canSign(order, "MECANICO")) {
-      alert("Se alcanzó el máximo de 5 firmas de Mecánico para esta orden.");
-      return;
-    }
-
-    const btn = $("cleaningCorrectedBtn");
-    const previousText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "Corrigiendo...";
-
-    try {
-      const updated = await dataAdapter.markCleaningCorrected(order);
-      replaceOrder(updated);
-      loadOrderToForm(updated);
-    } catch (err) {
-      await handleApiError(err, order);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = previousText;
-    }
-  }
+  // Laboratorio dentro de la OC (recepción, aprobar/rechazar limpieza,
+  // corrección del Mecánico) ya no tiene acción interactiva -- Fase 2 de
+  // Control de Paros retiró esas 3 acciones del backend (código muerto,
+  // ninguna orden nueva vuelve a pasar por PENDIENTE_LABORATORIO). La
+  // tarjeta "5. Laboratorio" (solo lectura) también se quitó del Llenado --
+  // el indicador de la barra de flujo ya alcanza (ver renderFlow).
 
   // ============================================================
   // CIERRE
@@ -791,9 +661,24 @@
 
     el.innerHTML = FLOW_STAGES.map((s, i) => {
       let cls = "pending";
-      if (i < currentIndex || (i === currentIndex && isFinal)) cls = "complete";
-      else if (i === currentIndex) {
-        cls = ((rejectedNow && s.key === "mecanico") || (rejectedLab && s.key === "lab")) ? "rejected" : "active";
+
+      if (s.key === "lab") {
+        // Laboratorio ya no vive en el ESTADO de la OC (Fase 1/2 de Control
+        // de Paros): se colorea por el sello real en TRANS_PAROS, no por
+        // posición -- si no, se pinta verde solo por avanzar la OC, aunque
+        // Laboratorio no haya validado nada todavía.
+        const paro = state.paros.find(p => p.orderId === order.id);
+        if (paro) {
+          cls = paro.seals[2].hora ? "complete" : (paro.seals[1].hora ? "active" : "pending");
+        } else if (i < currentIndex || (i === currentIndex && isFinal)) {
+          cls = "complete"; // sin Paro (orden previa a Fase 1): criterio posicional de siempre
+        } else if (i === currentIndex) {
+          cls = rejectedLab ? "rejected" : "active";
+        }
+      } else if (i < currentIndex || (i === currentIndex && isFinal)) {
+        cls = "complete";
+      } else if (i === currentIndex) {
+        cls = (rejectedNow && s.key === "mecanico") ? "rejected" : "active";
       }
 
       return `
@@ -804,33 +689,15 @@
     }).join("");
   }
 
-  function renderHistory(order) {
-    const el = $("historyTimeline");
-    if (!order || !order.history.length) {
-      el.innerHTML = `<div class="timeline-empty">Aún no hay eventos registrados.</div>`;
-      return;
-    }
-    el.innerHTML = order.history.map(ev => `
-      <div class="timeline-item">
-        <div class="timeline-time">${formatDateTime(ev.timestamp)}</div>
-        <div class="timeline-content">
-          <strong>${escapeHtml(ev.action)} · ${escapeHtml(ev.profileLabel || "")}</strong>
-          <p>${escapeHtml(ev.detail || "")}</p>
-          ${ev.changes && ev.changes.length ? `
-            <ul class="timeline-changes">
-              ${ev.changes.map(c => `<li>${escapeHtml(c.field)}: <em>${escapeHtml(safeText(c.before))}</em> → <strong>${escapeHtml(safeText(c.after))}</strong></li>`).join("")}
-            </ul>` : ""}
-        </div>
-      </div>
-    `).join("");
-  }
+  // El detalle cronológico completo ya vive en el tab "Histórico"
+  // (js/tab-history.js) -- redundante mostrarlo también aquí.
 
   function renderSignatures(order) {
     const profiles = [
       ["SUPERVISOR", "Supervisor"],
       ["MECANICO", "Mecánico"],
-      ["PCP", "PCP Hilandería"],
-      ["LABORATORIO", "Laboratorio"]
+      ["LABORATORIO", "Laboratorio"],
+      ["PCP", "PCP Hilandería"]
     ];
     $("signaturesGrid").innerHTML = profiles.map(([key, label]) => {
       const list = order?.signatures?.[key] || [];
@@ -843,16 +710,6 @@
           ${last ? `<small class="muted">${escapeHtml(last.code)} · ${list.length}/${MAX_SIGNATURES_PER_PROFILE}</small>` : ""}
         </div>`;
     }).join("");
-  }
-
-  function renderLab(order) {
-    const el = $("labReceiptInfo");
-    if (!order || !order.laboratoryReceipts.length) {
-      el.textContent = "Pendiente de recepción.";
-      return;
-    }
-    const last = order.laboratoryReceipts[order.laboratoryReceipts.length - 1];
-    el.textContent = `Recibido por ${last.receivedBy} · ${formatDateTime(last.timestamp)}`;
   }
 
   function renderRpmAttempts(order) {
@@ -869,22 +726,6 @@
           Diferencia: ${a.difference > 0 ? "+" : ""}${a.difference.toFixed(0)} (${a.differencePercent.toFixed(2)}%)</div>
         ${a.reason ? `<div>Motivo: ${escapeHtml(a.reason)}</div>` : ""}
         <small class="muted">${escapeHtml(a.validator)} · ${formatDateTime(a.timestamp)}</small>
-      </div>
-    `).join("");
-  }
-
-  function renderCleaningAttempts(order) {
-    const el = $("cleaningAttemptsList");
-    if (!el) return;
-    if (!order || !order.cleaningAttempts.length) {
-      el.innerHTML = "";
-      return;
-    }
-    el.innerHTML = order.cleaningAttempts.map(c => `
-      <div class="rpm-attempt-item ${c.decision === "APROBADA" ? "approved" : "rejected"}">
-        <strong>Limpieza · intento ${c.attempt} · ${escapeHtml(c.decision)}</strong>
-        ${c.reason ? `<div>Motivo: ${escapeHtml(c.reason)}</div>` : ""}
-        <small class="muted">${escapeHtml(c.validator)} · ${formatDateTime(c.timestamp)}</small>
       </div>
     `).join("");
   }
@@ -906,19 +747,9 @@
     `).join("");
   }
 
-  function renderCloseChecklist(order) {
-    const el = $("closeChecklist");
-    if (!order) {
-      el.innerHTML = `<div class="timeline-empty">Cree o seleccione una orden.</div>`;
-      return;
-    }
-    el.innerHTML = getCloseChecklist(order).map(item => `
-      <div class="check-item ${item.ok ? "ok" : "missing"}">
-        <span class="check-dot"></span>
-        <span>${escapeHtml(item.label)}${item.soft && !item.ok ? ` <small class="muted">(se puede forzar el cierre normal con aviso)</small>` : ""}</span>
-      </div>
-    `).join("");
-  }
+  // El listado visual del checklist de cierre (#closeChecklist) se quitó
+  // por redundante -- getCloseChecklist() sigue viva, la usan
+  // closeOrderNormal() y openForceClose() para validar antes de cerrar.
 
   // ============================================================
   // INICIALIZACIÓN DE LA PESTAÑA
@@ -1039,12 +870,6 @@
     $("rejectRpmBtn").addEventListener("click", openRejectModal);
     $("confirmRejectBtn").addEventListener("click", confirmReject);
 
-    $("labReceivedBtn").addEventListener("click", registerLabReceipt);
-    $("approveCleaningBtn").addEventListener("click", approveCleaning);
-    $("rejectCleaningBtn").addEventListener("click", openRejectCleaningModal);
-    $("confirmRejectCleaningBtn").addEventListener("click", confirmRejectCleaning);
-    $("cleaningCorrectedBtn").addEventListener("click", mechanicCleaningCorrected);
-
     $("closeOrderBtn").addEventListener("click", closeOrderNormal);
     $("forceCloseBtn").addEventListener("click", openForceClose);
     $("confirmForceCloseBtn").addEventListener("click", confirmForceClose);
@@ -1063,7 +888,7 @@
   OC.tabFill = {
     init, loadOrderToForm, collectFormIntoOrder, startNewOrder,
     populateCatalogs, applyFieldPermissions,
-    renderOrderBadge, syncVisualStatus, renderFlow, renderHistory, renderSignatures, renderLab,
-    renderRpmAttempts, renderMechanicCorrections, renderCleaningAttempts, renderCloseChecklist
+    renderOrderBadge, syncVisualStatus, renderFlow, renderSignatures,
+    renderRpmAttempts, renderMechanicCorrections
   };
 })();
