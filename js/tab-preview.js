@@ -48,7 +48,7 @@
 
     const metrics = [
       ["Control de producción", data.productionControl],
-      ["RPM Cil. Frontal", data.rpmMechanic],
+      ["RPM - Ficha Técnica", data.rpmMechanic],
       ["Mts / Min", data.metersMinute],
       ["Asistente D.T.", data.assistantDT]
     ];
