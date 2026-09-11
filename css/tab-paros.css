@@ -1,0 +1,28 @@
+/* ============================================================
+   CONTROL DE PAROS (Fase 1)
+   ============================================================ */
+
+.paros-detail-head{margin-bottom:14px}
+.paros-detail-head h2{margin:0 0 4px}
+.paros-detail-head p{margin:0 0 8px}
+
+.alert-warning{background:#fff7db;color:#886000;border:1px solid #f0dfa0}
+.alert-success{background:#e9f7ed;color:#1f7b3a;border:1px solid #bfe4cb}
+
+.paros-actions-row{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.btn-sm{padding:6px 10px;font-size:.78rem;border-radius:8px}
+
+/* Etapa cuyo sello aun no se firmo: fila atenuada. */
+tr.paro-stage-pending{color:var(--muted)}
+tr.paro-stage-pending td{opacity:.65}
+
+@media (max-width:640px){
+  .paros-actions-row{flex-direction:column;align-items:stretch}
+}
