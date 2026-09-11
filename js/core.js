@@ -134,13 +134,55 @@ window.OC = window.OC || {};
   const MAX_SIGNATURES_PER_PROFILE = 5;
   const SIGNATURE_PROFILE_CODE = { SUPERVISOR: "SUPER", MECANICO: "MECA", PCP: "PCP", LABORATORIO: "LABO" };
 
+  // ============================================================
+  // CONTROL DE PAROS (Fase 1) -- mismo mapa de gating que signParoStage_/
+  // correctParoStage_ en code.gs (la validacion real vive en el backend,
+  // esto solo decide que botones mostrar).
+  // ============================================================
+  const PARO_STAGE_LABELS = {
+    1: "Limpieza y ajuste de máquina",
+    2: "Validación de limpieza",
+    3: "Montaje y encanillado",
+    4: "Titulación",
+    5: "RKM",
+    6: "Arranque de máquina"
+  };
+  const PARO_STAGE_PROFILES = {
+    1: ["SUPERVISOR"],
+    2: ["LABORATORIO"],
+    3: ["SUPERVISOR", "MECANICO"],
+    4: ["SUPERVISOR", "MECANICO", "LABORATORIO"],
+    5: ["SUPERVISOR", "MECANICO", "LABORATORIO"],
+    6: ["SUPERVISOR"]
+  };
+  const PARO_STAGE_BY_STATUS = {
+    EN_LIMPIEZA_Y_AJUSTE: 1,
+    EN_VALIDACION_LIMPIEZA: 2,
+    EN_MONTAJE: 3,
+    EN_TITULACION: 4,
+    EN_RKM: 5,
+    EN_ARRANQUE: 6
+  };
+  const PARO_STATUS_META = {
+    PENDIENTE: { label: "Pendiente firma Supervisor", color: "orange" },
+    EN_LIMPIEZA_Y_AJUSTE: { label: "Limpieza y ajuste", color: "blue" },
+    EN_VALIDACION_LIMPIEZA: { label: "Validación de limpieza", color: "blue" },
+    EN_MONTAJE: { label: "Montaje y encanillado", color: "blue" },
+    EN_TITULACION: { label: "Titulación", color: "blue" },
+    EN_RKM: { label: "RKM", color: "blue" },
+    EN_ARRANQUE: { label: "Arranque de máquina", color: "yellow" },
+    FINALIZADO: { label: "Finalizado", color: "green" }
+  };
+
   const state = {
     session: { profile: "", usuario: "", rol: "", shift: "Mañana" },
     loginProfiles: [],
     catalogs: { supervisores: [], maquinas: [], materiales: [], lotes: [], titulos: [], composiciones: [] },
     orders: [],
     currentOrderId: null,
-    activeTab: "fill"
+    activeTab: "fill",
+    paros: [],
+    activeParoId: null
   };
 
   // ============================================================
@@ -352,6 +394,76 @@ window.OC = window.OC || {};
       history: mapBackendHistory(data?.historial || []),
       closeNote: master.CIERRE_ACLARACION || ""
     });
+  }
+
+  // Control de Paros: `data` viene de getParo_ ({paro, eventos}) o, en la
+  // lista (getParos_), es directamente la fila de TRANS_PAROS.
+  function mapBackendParo(data) {
+    const row = (data && data.paro) || data || {};
+    const eventos = Array.isArray(data && data.eventos) ? data.eventos : [];
+
+    function sealMeta(n) {
+      const p = "T" + n + "_";
+      const correctable = n >= 1 && n <= 5;
+      const corrHora = correctable ? (row[p + "CORR_FECHA_HORA"] || "") : "";
+      const corregido = !!corrHora;
+      return {
+        hora: corregido ? corrHora : (row[p + "FECHA_HORA"] || ""),
+        usuario: corregido ? (row[p + "CORR_USUARIO"] || "") : (row[p + "USUARIO"] || ""),
+        perfil: corregido ? (row[p + "CORR_PERFIL"] || "") : (row[p + "PERFIL"] || ""),
+        firma: corregido ? (row[p + "CORR_FIRMA"] || "") : (row[p + "FIRMA"] || ""),
+        origen: row[p + "ORIGEN"] || "",
+        corregido,
+        original: correctable
+          ? { hora: row[p + "FECHA_HORA"] || "", usuario: row[p + "USUARIO"] || "", perfil: row[p + "PERFIL"] || "", firma: row[p + "FIRMA"] || "" }
+          : null
+      };
+    }
+
+    const seals = [];
+    for (let n = 0; n <= 6; n++) seals.push(sealMeta(n));
+
+    const stageDurations = [];
+    for (let n = 1; n <= 6; n++) {
+      if (seals[n].origen === "OMITIDA") { stageDurations.push(null); continue; }
+      const a = seals[n - 1].hora, b = seals[n].hora;
+      stageDurations.push(a && b ? (new Date(b) - new Date(a)) : null);
+    }
+    const totalMs = (seals[0].hora && seals[6].hora) ? (new Date(seals[6].hora) - new Date(seals[0].hora)) : null;
+
+    return {
+      orderId: row.ORDER_ID || "",
+      code: row.CODIGO_OC || "",
+      status: row.ESTADO || "PENDIENTE",
+      version: Number(row.VERSION) || 1,
+      machine: row.MAQUINA || "",
+      articulo: row.ARTICULO || "",
+      lote: row.LOTE || "",
+      toNe: row.A_NE || "",
+      mechanic: row.MECANICO || "",
+      seals,
+      stageDurations,
+      totalMs,
+      currentStage: PARO_STAGE_BY_STATUS[row.ESTADO] || null,
+      eventos: eventos.map(mapBackendParoEvent)
+    };
+  }
+
+  function mapBackendParoEvent(row) {
+    return {
+      id: row.EVENT_ID || "",
+      sello: Number(row.SELLO),
+      tipo: row.TIPO_EVENTO || "",
+      perfil: row.PERFIL_RESPONSABLE || "",
+      motivo: row.MOTIVO || "",
+      firmaCodigo: row.FIRMA_CODIGO || "",
+      usuario: row.FIRMA_USUARIO || "",
+      firmaFechaHora: row.FIRMA_FECHA_HORA || "",
+      valorAnteriorFechaHora: row.VALOR_ANTERIOR_FECHA_HORA || "",
+      fechaHoraEvento: row.FECHA_HORA_EVENTO || "",
+      estadoAnterior: row.ESTADO_ANTERIOR || "",
+      estadoResultante: row.ESTADO_RESULTANTE || ""
+    };
   }
 
   function safeJsonParse(value, fallback) {
@@ -587,6 +699,36 @@ window.OC = window.OC || {};
         usuario: state.session.usuario || PROFILE_LABELS[state.session.profile] || state.session.profile,
         reason
       });
+    },
+    async fetchParos() {
+      const rows = await apiGet("getParos");
+      return (Array.isArray(rows) ? rows : []).map(mapBackendParo);
+    },
+    async fetchParo(orderId) {
+      const result = await apiGet("getParo", { ORDER_ID: orderId });
+      return mapBackendParo(result);
+    },
+    async signParoStage(paro, sello, opts = {}) {
+      const result = await apiPost("signParoStage", {
+        ORDER_ID: paro.orderId,
+        expectedVersion: paro.version,
+        usuario: state.session.usuario || PROFILE_LABELS[state.session.profile] || state.session.profile,
+        profile: state.session.profile,
+        sello,
+        omitir: !!opts.omitir
+      });
+      return mapBackendParo(result);
+    },
+    async correctParoStage(paro, sello, motivo = "") {
+      const result = await apiPost("correctParoStage", {
+        ORDER_ID: paro.orderId,
+        expectedVersion: paro.version,
+        usuario: state.session.usuario || PROFILE_LABELS[state.session.profile] || state.session.profile,
+        profile: state.session.profile,
+        sello,
+        motivo
+      });
+      return mapBackendParo(result);
     }
   };
 
@@ -678,7 +820,11 @@ window.OC = window.OC || {};
     validateCleaning: "Guardando decisión de limpieza en Google Sheets...",
     markCleaningCorrected: "Guardando corrección de limpieza...",
     closeOrder: "Cerrando orden en Google Sheets...",
-    deleteOrder: "Eliminando orden en Google Sheets..."
+    deleteOrder: "Eliminando orden en Google Sheets...",
+    getParos: "Cargando Control de Paros desde Google Sheets...",
+    getParo: "Abriendo Paro desde Google Sheets...",
+    signParoStage: "Guardando firma en Google Sheets...",
+    correctParoStage: "Guardando corrección en Google Sheets..."
   };
 
   let activeApiRequests = 0;
@@ -756,6 +902,7 @@ window.OC = window.OC || {};
     await dataAdapter.fetchCatalogs();
     const previousId = state.currentOrderId;
     state.orders = await dataAdapter.fetchOrders();
+    state.paros = await dataAdapter.fetchParos();
 
     if (previousId && state.orders.some((order) => order.id === previousId)) {
       state.currentOrderId = previousId;
@@ -1078,6 +1225,7 @@ window.OC = window.OC || {};
     OC.tabPreview.renderPreview(order);
     OC.tabRegistry.renderRegistry();
     OC.tabFill.syncVisualStatus();
+    if (OC.tabParos?.renderList) OC.tabParos.renderList();
   }
 
   // Chrome global: topbar + navegación de tabs + cierre genérico de modales.
@@ -1126,6 +1274,7 @@ window.OC = window.OC || {};
     CONFIG, MACHINES, LOGIN_PROFILE_MAP, PROFILE_LABELS, PROFILE_PERMISSIONS,
     ORDER_STATUS_META, STATUS_GROUPS, FLOW_STAGES,
     MAX_CYCLES, MAX_SIGNATURES_PER_PROFILE,
+    PARO_STAGE_LABELS, PARO_STAGE_PROFILES, PARO_STAGE_BY_STATUS, PARO_STATUS_META,
     state, dataAdapter,
     util: { $, $$, now, isoDate, timeHHMM, stamp, formatDateTime, formatTime, uid },
     normalizeProfileName, getProfileKeyFromName, getPermissions, apiGet, apiPost, syncFromBackend,
