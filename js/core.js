@@ -706,6 +706,16 @@ window.OC = window.OC || {};
         motivo
       });
       return mapBackendParo(result);
+    },
+    // Borrado suave (ESTADO -> ELIMINADO), misma lógica que deleteOrder.
+    async markParoDeleted(paro, reason = "") {
+      return apiPost("markParoDeleted", {
+        ORDER_ID: paro.orderId,
+        expectedVersion: paro.version,
+        profile: state.session.profile,
+        usuario: state.session.usuario || PROFILE_LABELS[state.session.profile] || state.session.profile,
+        reason
+      });
     }
   };
 
@@ -798,7 +808,8 @@ window.OC = window.OC || {};
     getParos: "Cargando Control de Paros desde Google Sheets...",
     getParo: "Abriendo Paro desde Google Sheets...",
     signParoStage: "Guardando firma en Google Sheets...",
-    correctParoStage: "Guardando corrección en Google Sheets..."
+    correctParoStage: "Guardando corrección en Google Sheets...",
+    markParoDeleted: "Eliminando Control de Paros en Google Sheets..."
   };
 
   let activeApiRequests = 0;
