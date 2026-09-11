@@ -49,17 +49,37 @@
       return tb - ta;
     });
 
+    // Mismo permiso que habilita "Eliminar" en el Registro de la OC.
+    const canDelete = !!OC.getPermissions(state.session.profile).canDeleteOrder;
+
     tbody.innerHTML = rows.map((p) => {
       const meta = PARO_STATUS_META[p.status];
       const etapa = p.currentStage ? PARO_STAGE_LABELS[p.currentStage] : (p.status === "FINALIZADO" ? "—" : "—");
+      // La orden es la fuente de la verdad (la firma del Paro solo guarda
+      // una foto del momento en que se creó); si por lo que sea la orden ya
+      // no está en state.orders (eliminada), se cae al dato guardado en el
+      // propio Paro.
+      const order = state.orders.find((o) => o.id === p.orderId);
+      const machine = order?.machine || p.machine;
+      const articulo = order?.articulo || p.articulo;
+      const composicion = order?.composicion || "";
+      const lote = order?.lote || p.lote;
+      const aNe = order?.toNe || p.toNe;
+
       return `
       <tr>
         <td class="row-actions-cell">
           <button class="row-action" data-open-paro="${p.orderId}">Abrir</button>
+          ${canDelete ? `<button class="row-action row-action-danger" data-delete-paro="${p.orderId}" title="Eliminar Control de Paros" aria-label="Eliminar Control de Paros de ${escapeHtml(p.code)}">🗑️</button>` : ""}
         </td>
         <td><strong>${escapeHtml(p.code)}</strong></td>
-        <td>${escapeHtml(safeText(p.machine))}</td>
-        <td>${escapeHtml(safeText(p.articulo))} → ${escapeHtml(safeText(p.toNe))}</td>
+        <td>${escapeHtml(safeText(machine))}</td>
+        <td class="paros-articulo-stack">
+          <div>${escapeHtml(safeText(articulo))}</div>
+          <small class="muted">${escapeHtml(safeText(composicion))}</small>
+          <small class="muted">Lote: ${escapeHtml(safeText(lote))}</small>
+          <small class="muted">A Ne: ${escapeHtml(safeText(aNe))}</small>
+        </td>
         <td><span class="status-badge ${paroStatusClass(p.status)}">${escapeHtml(meta?.label || p.status)}</span></td>
         <td>${escapeHtml(etapa)}</td>
         <td>${formatDuration(p.totalMs)}</td>
@@ -79,6 +99,28 @@
         } finally {
           btn.disabled = false;
           btn.textContent = previousText;
+        }
+      });
+    });
+
+    $$("[data-delete-paro]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const orderId = btn.dataset.deleteParo;
+        const paro = findParoByOrderId(orderId);
+        if (!paro) return;
+
+        const proceed = confirm(`¿Eliminar el Control de Paros de la orden ${paro.code}? Se ocultará del listado y quedará trazabilidad en el historial.`);
+        if (!proceed) return;
+
+        btn.disabled = true;
+        try {
+          await OC.dataAdapter.markParoDeleted(paro);
+          state.paros = state.paros.filter((p) => p.orderId !== orderId);
+          renderList();
+        } catch (error) {
+          console.error("No se pudo eliminar el Paro", error);
+          alert(OC.describeApiError ? OC.describeApiError(error) : "No se pudo eliminar en Google Sheets.");
+          btn.disabled = false;
         }
       });
     });
