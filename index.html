@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/tab-fill.css" />
   <link rel="stylesheet" href="css/tab-preview.css" />
   <link rel="stylesheet" href="css/tab-registry.css" />
+  <link rel="stylesheet" href="css/tab-paros.css" />
 </head>
 <body>
   <div id="app">
@@ -516,11 +517,61 @@
       </div><!-- /#section-orden -->
 
       <div id="section-paros" class="global-section">
-        <div class="paros-empty">
-          <div class="paros-empty-icon" aria-hidden="true">🛠️</div>
-          <h2>Control de Paros</h2>
-          <p>Sección en construcción. Próximamente el registro y seguimiento de paros de máquina.</p>
+      <main class="content">
+
+        <div id="parosListPanel">
+          <div class="page-head">
+            <div>
+              <h2>Control de Paros</h2>
+              <p class="muted">Tiempo exacto de cada control interno durante el paro de máquina.</p>
+            </div>
+            <button id="parosRefreshBtn" type="button" class="btn btn-ghost">Actualizar</button>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>N.º Orden</th>
+                  <th>Máquina</th>
+                  <th>Artículo → Ne</th>
+                  <th>Estado</th>
+                  <th>Etapa actual</th>
+                  <th>Tiempo total</th>
+                </tr>
+              </thead>
+              <tbody id="parosBody"></tbody>
+            </table>
+          </div>
         </div>
+
+        <div id="parosDetailPanel" class="hidden">
+          <div class="preview-title-row">
+            <button id="parosBackBtn" type="button" class="preview-back-btn btn btn-ghost" aria-label="Volver al listado de Paros">←</button>
+          </div>
+
+          <div id="parosDetailHead" class="paros-detail-head"></div>
+          <div id="parosDetailAlert"></div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Etapa</th>
+                  <th>Inicio</th>
+                  <th>Fin</th>
+                  <th>Duración</th>
+                  <th>Firmado por</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="parosTimelineBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
       </div>
 
       <!-- WIDGET MAESTRO: acciones flotantes (vistas + actualizar + salir) -->
@@ -635,6 +686,7 @@
   <script src="js/tab-preview.js"></script>
   <script src="js/tab-registry.js"></script>
   <script src="js/tab-history.js"></script>
+  <script src="js/tab-paros.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
