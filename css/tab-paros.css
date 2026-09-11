@@ -19,6 +19,12 @@
 
 .btn-sm{padding:6px 10px;font-size:.78rem;border-radius:8px}
 
+/* Columna "Artículo" de la lista: valores apilados (Artículo, Composición,
+   Lote, A Ne) en vez de una sola línea. */
+.paros-articulo-stack{line-height:1.35}
+.paros-articulo-stack div{font-weight:700}
+.paros-articulo-stack small{display:block}
+
 /* Etapa cuyo sello aun no se firmo: fila atenuada. */
 tr.paro-stage-pending{color:var(--muted)}
 tr.paro-stage-pending td{opacity:.65}
