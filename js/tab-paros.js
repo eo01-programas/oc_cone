@@ -116,6 +116,18 @@
     renderDetail();
   }
 
+  // El servidor sella la corrección con la hora actual -- por eso solo
+  // tiene sentido mientras ningún sello posterior tenga ya una hora
+  // registrada (si no, "ahora" quedaría después de ese sello). El sello 5
+  // puede estar vacío por omitido: en ese caso el límite real es el
+  // próximo sello con hora (hasta el 6), igual que corrigeParoStage_.
+  function hasLaterSeal(paro, n) {
+    for (let k = n + 1; k <= 6; k++) {
+      if (paro.seals[k].hora) return true;
+    }
+    return false;
+  }
+
   function stageRowHtml(n, paro) {
     const seal = paro.seals[n];
     const prevSeal = paro.seals[n - 1];
@@ -123,7 +135,7 @@
     const omitida = seal.origen === "OMITIDA";
     const duration = omitida ? "Omitida" : formatDuration(paro.stageDurations[n - 1]);
     const closed = omitida || !!seal.hora;
-    const canCorrect = n <= 5 && closed && !omitida;
+    const canCorrect = n <= 5 && closed && !omitida && !hasLaterSeal(paro, n);
     const allowedProfiles = PARO_STAGE_PROFILES[n] || [];
     const canActOnThisStage = allowedProfiles.includes(state.session.profile);
 
