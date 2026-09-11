@@ -80,6 +80,7 @@
       <tr class="${o.id === mostRecentId ? "row-recent" : ""}">
         <td class="row-actions-cell">
           <button class="row-action" data-open-order="${o.id}">Abrir</button>
+          <button class="row-action" data-open-paro-from-registry="${o.id}" title="Ver Control de Paros de esta orden">Ver Paro</button>
           ${canDelete ? `<button class="row-action row-action-danger" data-delete-order="${o.id}" title="Eliminar orden" aria-label="Eliminar orden ${escapeHtml(o.code)}">Eliminar</button>` : ""}
         </td>
         <td>${formatDateTime(o.updatedAt)}</td>
@@ -119,6 +120,25 @@
         } catch (error) {
           console.error("No se pudo abrir la orden", error);
           alert("No se pudo abrir la orden desde Google Sheets.");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = previousText;
+        }
+      });
+    });
+
+    $$("[data-open-paro-from-registry]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.openParoFromRegistry;
+        const previousText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Abriendo...";
+        try {
+          OC.setSection("paros");
+          await OC.tabParos.openParo(id);
+        } catch (error) {
+          console.error("No se pudo abrir Control de Paros", error);
+          alert("No se pudo abrir Control de Paros desde Google Sheets.");
         } finally {
           btn.disabled = false;
           btn.textContent = previousText;
