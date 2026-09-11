@@ -8,6 +8,7 @@
     OC.tabPreview.init();
     OC.tabRegistry.init();
     OC.tabHistory.init();
+    OC.tabParos.init();
 
     const loaded = OC.dataAdapter.load();
     OC.state.orders = Array.isArray(loaded.orders) ? loaded.orders : [];
