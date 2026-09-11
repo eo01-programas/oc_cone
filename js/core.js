@@ -125,8 +125,8 @@ window.OC = window.OC || {};
   const FLOW_STAGES = [
     { key: "creacion", label: "Creación", help: "Supervisor", statuses: ["CREADA", "PENDIENTE_MECANICO"] },
     { key: "mecanico", label: "Mecánico", help: "Mecánico", statuses: ["EN_REGULACION", "RECHAZADA_RPM", "PENDIENTE_REVALIDACION_RPM"] },
-    { key: "rpm", label: "Validación RPM", help: "PCP / Supervisor", statuses: ["PENDIENTE_VALIDACION_RPM", "RPM_APROBADA"] },
     { key: "lab", label: "Laboratorio", help: "Recibido / Limpieza", statuses: ["PENDIENTE_LABORATORIO", "LABORATORIO_RECIBIDO", "LIMPIEZA_RECHAZADA", "LIMPIEZA_CORREGIDA_PENDIENTE_LABORATORIO", "LIMPIEZA_APROBADA"] },
+    { key: "rpm", label: "Validación RPM", help: "PCP / Supervisor", statuses: ["PENDIENTE_VALIDACION_RPM", "RPM_APROBADA"] },
     { key: "cierre", label: "Cierre", help: "Supervisor", statuses: ["PENDIENTE_CIERRE", "CERRADA", "CERRADA_CON_OBSERVACIONES", "CERRADA_MAX_RECHAZOS_RPM", "CERRADA_MAX_FALLOS_LIMPIEZA"] }
   ];
 
@@ -650,32 +650,9 @@ window.OC = window.OC || {};
       });
       return mapBackendOrder(result);
     },
-    async registerLabReceipt(order) {
-      const result = await apiPost("registerLabReceipt", {
-        ORDER_ID: order.id,
-        expectedVersion: order.version,
-        usuario: state.session.usuario || PROFILE_LABELS.LABORATORIO
-      });
-      return mapBackendOrder(result);
-    },
-    async validateCleaning(order, validation) {
-      const result = await apiPost("validateCleaning", {
-        ORDER_ID: order.id,
-        expectedVersion: order.version,
-        usuario: state.session.usuario || PROFILE_LABELS.LABORATORIO,
-        decision: validation.decision,
-        reason: validation.reason || ""
-      });
-      return mapBackendOrder(result);
-    },
-    async markCleaningCorrected(order) {
-      const result = await apiPost("markCleaningCorrected", {
-        ORDER_ID: order.id,
-        expectedVersion: order.version,
-        usuario: state.session.usuario || PROFILE_LABELS.MECANICO
-      });
-      return mapBackendOrder(result);
-    },
+    // registerLabReceipt/validateCleaning/markCleaningCorrected se retiraron
+    // en Fase 2 de Control de Paros -- las acciones equivalentes en el
+    // backend ya no existen (ver code.gs).
     async saveOrder(order) { return order; },
     async updateOrder(order) { return order; },
     async registerHistory(orderId, event) { return { orderId, event }; },
@@ -816,9 +793,6 @@ window.OC = window.OC || {};
     signMechanic: "Guardando firma de Mecánico en Google Sheets...",
     correctMechanicRpm: "Guardando corrección de RPM en Google Sheets...",
     validateRpm: "Guardando validación de RPM en Google Sheets...",
-    registerLabReceipt: "Registrando recepción de Laboratorio...",
-    validateCleaning: "Guardando decisión de limpieza en Google Sheets...",
-    markCleaningCorrected: "Guardando corrección de limpieza...",
     closeOrder: "Cerrando orden en Google Sheets...",
     deleteOrder: "Eliminando orden en Google Sheets...",
     getParos: "Cargando Control de Paros desde Google Sheets...",
@@ -1211,17 +1185,18 @@ window.OC = window.OC || {};
   // Dispatcher: cada módulo de pestaña resuelve su propio render.
   function renderAll() {
     const order = getCurrentOrder();
+    // "+ Orden" (widget flotante) se oculta mientras hay una orden abierta
+    // en Llenado -- independiente de data-for-section (esa la esconde por
+    // sección; esta clase la esconde por orden abierta, ambas se combinan
+    // sin pisarse porque cada una solo agrega display:none por su lado).
+    $("newOrderBtn")?.classList.toggle("is-order-open", !!order);
     OC.tabFill.renderOrderBadge(order);
     OC.tabFill.renderFlow(order);
-    OC.tabFill.renderHistory(order);
     OC.tabFill.renderSignatures(order);
-    OC.tabFill.renderLab(order);
     OC.tabFill.renderRpmAttempts(order);
     OC.tabFill.renderMechanicCorrections(order);
-    OC.tabFill.renderCleaningAttempts(order);
     OC.login.renderSectionVisibility(order);
     OC.login.renderActionVisibility(order);
-    OC.tabFill.renderCloseChecklist(order);
     OC.tabPreview.renderPreview(order);
     OC.tabRegistry.renderRegistry();
     OC.tabFill.syncVisualStatus();
