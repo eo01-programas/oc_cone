@@ -76,7 +76,6 @@
 
     $("approveRpmBtn").classList.toggle("hidden", !permissions.canValidateRPM);
     $("rejectRpmBtn").classList.toggle("hidden", !permissions.canValidateRPM);
-    $("labReceivedBtn").classList.toggle("hidden", !permissions.canReceiveLab);
     $("closeOrderBtn").classList.toggle("hidden", !permissions.canCloseOrder);
     $("forceCloseBtn").classList.toggle("hidden", !permissions.canForceClose);
     $("newOrderBtn").classList.toggle("hidden", !permissions.canCreateOrder);
@@ -99,19 +98,14 @@
     const hasRejection = !!order && order.rpmValidationAttempts.some(a => a.decision === "RECHAZADA");
 
     $("rpmValidationCard").classList.toggle("hidden", p === "MECANICO" && !hasRejection);
-    $("labCard").classList.toggle("hidden", p === "MECANICO");
     // Tras un rechazo de PCP la responsabilidad de corregir es del
     // Supervisor (no del Mecánico) -- ver PLAN_IMPLEMENTACION_FLUJO_PCP.md.
     // El Mecánico se conserva por si alguna orden sigue el camino anterior.
     $("correctionCard").classList.toggle("hidden", !((p === "MECANICO" || p === "SUPERVISOR") && order && order.status === "RECHAZADA_RPM"));
-    $("cleaningCorrectionCard").classList.toggle("hidden", !(p === "MECANICO" && order && order.status === "LIMPIEZA_RECHAZADA"));
-
-    $("labReceivedBtn").disabled = !order || !["PENDIENTE_LABORATORIO", "LIMPIEZA_CORREGIDA_PENDIENTE_LABORATORIO"].includes(order.status);
   }
 
   function renderActionVisibility(order) {
     const p = state.session.profile;
-    const permissions = getPermissions(p);
     const show = (id, cond) => $(id).classList.toggle("hidden", !cond);
 
     // "Guardar/Firmar/Enviar" ahora es una acción atómica delegada
@@ -130,9 +124,6 @@
 
     show("startRegulationBtn", p === "MECANICO" && !!order && order.status === "PENDIENTE_MECANICO");
     show("mechanicSignBtn", p === "MECANICO" && !!order && order.status === "EN_REGULACION");
-
-    show("approveCleaningBtn", permissions.canValidateCleaning && !!order && order.status === "LABORATORIO_RECIBIDO");
-    show("rejectCleaningBtn", permissions.canValidateCleaning && !!order && order.status === "LABORATORIO_RECIBIDO");
   }
 
   function updateTurnVisibility() {
