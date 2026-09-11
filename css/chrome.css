@@ -15,6 +15,20 @@
 .app-title{font-weight:900;letter-spacing:.04em}
 .session-meta{font-size:.78rem;color:var(--muted);margin-top:4px;text-align:center}
 
+/* Widget flotante "+ Orden": fijo arriba a la izquierda, independiente del
+   encabezado -- mismo criterio que #viewDial (position:fixed). */
+.topbar-new-order{
+  position:fixed;
+  top:14px;
+  left:16px;
+  z-index:55;
+  white-space:nowrap;
+  box-shadow:0 8px 22px rgba(23,32,51,.18);
+}
+/* Con una orden abierta en Llenado, el widget "+ Orden" estorba -- se
+   oculta aparte de data-for-section (ver renderAll en core.js). */
+.topbar-new-order.is-order-open{display:none}
+
 @keyframes oc-spin{to{transform:rotate(360deg)}}
 #refreshBtn.is-syncing .icon-refresh{animation:oc-spin .8s linear infinite}
 
@@ -30,8 +44,6 @@
   border-bottom:1px solid var(--line);
   overflow:auto;
 }
-/* "+ Nueva orden" a la derecha del tab "Control de Paros". */
-.global-tabs-cta{flex:0 0 auto;margin:0 0 6px 12px;white-space:nowrap}
 .global-tab{
   border:1px solid transparent;
   border-bottom:0;
@@ -199,4 +211,5 @@
   .page-head{flex-direction:column;align-items:stretch}
   .view-dial{right:14px;bottom:96px}
   .view-dial-toggle{width:48px;height:48px}
+  .topbar-new-order{top:10px;left:10px;padding:8px 12px;font-size:.85rem}
 }
