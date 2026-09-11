@@ -654,11 +654,13 @@
       { label: "Hora de término registrada", ok: !!order.endTime },
       { label: "RPM mecánico registrada", ok: !!order.rpmMechanic },
       { label: "Validación RPM aprobada", ok: !!latest && latest.decision === "APROBADA", soft: true },
-      { label: "Laboratorio confirmó recibido", ok: order.laboratoryReceipts.length > 0 },
-      { label: "Limpieza aprobada", ok: order.cleaningAttempts.length > 0 && order.cleaningAttempts[order.cleaningAttempts.length - 1].decision === "APROBADA" },
+      // Fase 1 de Control de Paros: al aprobar RPM la orden salta directo a
+      // Pendiente de Cierre, sin pasar por Laboratorio dentro de la OC (ver
+      // validateRpm_ en code.gs). La confirmación de Laboratorio/limpieza
+      // ahora vive en Control de Paros (sello 2), así que ya no son
+      // requisitos "duros" de este checklist.
       { label: "Firma del Mecánico", ok: order.signatures.MECANICO.length > 0 },
       { label: "Firma del validador RPM", ok: order.signatures.PCP.length > 0 || order.signatures.SUPERVISOR.length > 0 },
-      { label: "Firma de Laboratorio", ok: order.signatures.LABORATORIO.length > 0 },
       { label: "Firma del Supervisor", ok: order.signatures.SUPERVISOR.length > 0 }
     ];
   }
