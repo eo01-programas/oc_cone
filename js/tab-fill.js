@@ -575,6 +575,7 @@
       });
       replaceOrder(updated);
       loadOrderToForm(updated);
+      openModal("orderClosedModal");
     } catch (err) {
       await handleApiError(err, order);
     } finally {
@@ -615,6 +616,7 @@
       replaceOrder(updated);
       loadOrderToForm(updated);
       closeModal("forceCloseModal");
+      openModal("orderClosedModal");
     } catch (err) {
       await handleApiError(err, order);
     } finally {
@@ -873,6 +875,14 @@
     $("closeOrderBtn").addEventListener("click", closeOrderNormal);
     $("forceCloseBtn").addEventListener("click", openForceClose);
     $("confirmForceCloseBtn").addEventListener("click", confirmForceClose);
+
+    // El tab solo cambia al aceptar el modal, no apenas se cierra la orden
+    // (decision explicita: la navegacion es parte de "confirmar y listo",
+    // no algo que pase debajo del modal mientras el usuario lo ve).
+    $("orderClosedAcceptBtn").addEventListener("click", () => {
+      closeModal("orderClosedModal");
+      setTab("registry");
+    });
 
     // Auto-sincronización de formulario al salir de campos.
     // (Reemplazo definitivo por bloqueo + lápiz + firma pendiente: próxima sub-etapa.)
