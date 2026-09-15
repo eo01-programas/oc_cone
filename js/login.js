@@ -104,6 +104,22 @@
     $("correctionCard").classList.toggle("hidden", !((p === "MECANICO" || p === "SUPERVISOR") && order && order.status === "RECHAZADA_RPM"));
   }
 
+  // .sticky-actions (position:sticky, pegado abajo con fondo translucido +
+  // sombra + blur -- ver css/tab-fill.css) solo se ocultaba boton por boton;
+  // el contenedor en si nunca se ocultaba, asi que cuando NINGUNO de sus 3
+  // botones aplicaba (ej. ordenes ya cerradas, o cualquier estado fuera de
+  // los que manejan estos 3 botones puntuales) quedaba flotando vacio sobre
+  // el bloque "Firmas" (Cerrar orden/Forzar cierre) al hacer scroll, tapando
+  // buena parte de esos botones aunque no se viera nada ahi. Se revisa el
+  // DOM directo (no una condicion duplicada) para que cubra tambien
+  // "sendToMechanicBtn" u otro boton que se agregue ahi a futuro.
+  function updateStickyActionsVisibility() {
+    const container = $("stickyActions");
+    if (!container) return;
+    const anyVisible = [...container.querySelectorAll(".btn")].some((btn) => !btn.classList.contains("hidden"));
+    container.classList.toggle("hidden", !anyVisible);
+  }
+
   function renderActionVisibility(order) {
     const p = state.session.profile;
     const show = (id, cond) => $(id).classList.toggle("hidden", !cond);
@@ -124,6 +140,8 @@
 
     show("startRegulationBtn", p === "MECANICO" && !!order && order.status === "PENDIENTE_MECANICO");
     show("mechanicSignBtn", p === "MECANICO" && !!order && order.status === "EN_REGULACION");
+
+    updateStickyActionsVisibility();
   }
 
   function updateTurnVisibility() {
