@@ -251,9 +251,18 @@
     const head = $("parosDetailHead");
     if (head) {
       const meta = PARO_STATUS_META[paro.status];
+      // La orden es la fuente de la verdad para estos datos (mismo criterio
+      // que renderList): si ya no esta en state.orders (eliminada), se cae
+      // al dato guardado en el propio Paro.
+      const order = state.orders.find((o) => o.id === paro.orderId);
+      const machine = order?.machine || paro.machine;
+      const articulo = order?.articulo || paro.articulo;
+      const composicion = order?.composicion || "";
+      const toNe = order?.toNe || paro.toNe;
       head.innerHTML = `
-        <h2>${escapeHtml(paro.code)}</h2>
-        <p class="muted">${escapeHtml(safeText(paro.machine))} · ${escapeHtml(safeText(paro.articulo))} → ${escapeHtml(safeText(paro.toNe))} · ${escapeHtml(safeText(paro.mechanic))}</p>
+        <h2>${escapeHtml(safeText(machine))}</h2>
+        <p class="muted">${escapeHtml(safeText(articulo))} · ${escapeHtml(safeText(composicion))} · ${escapeHtml(safeText(toNe))}</p>
+        <p class="muted">N.º Orden: ${escapeHtml(paro.code)} · Mecánico: ${escapeHtml(safeText(paro.mechanic))}</p>
         <span class="status-badge ${paroStatusClass(paro.status)}">${escapeHtml(meta?.label || paro.status)}</span>`;
     }
 
