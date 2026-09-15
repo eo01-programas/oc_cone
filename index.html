@@ -618,6 +618,20 @@
     </div>
   </div>
 
+  <!-- MODAL ORDEN CERRADA: aparece al cerrar una orden (normal o forzado).
+       "Aceptar" es lo único que la cierra -- recién ahí se pasa al tab
+       Registro (ver wireOrderClosedModal() en tab-fill.js). -->
+  <div id="orderClosedModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Orden Cerrada</h3>
+      </div>
+      <div class="modal-actions">
+        <button id="orderClosedAcceptBtn" class="btn btn-primary">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL DE CARGA: visible mientras hay una acción en curso contra Google Sheets -->
   <div id="loadingOverlay" class="loading-overlay hidden" role="status" aria-live="polite">
     <div class="loading-card">
