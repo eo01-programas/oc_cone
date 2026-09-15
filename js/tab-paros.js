@@ -29,6 +29,18 @@
     return state.paros.find((p) => p.orderId === orderId) || null;
   }
 
+  // Fecha/Hora de la lista = fecha de creacion de la Orden de Cambio (el
+  // Paro en si no guarda su propia fecha "de cabecera", solo los sellos
+  // T0-T6 -- ver mapBackendParo en core.js).
+  function fechaHoraStackHtml(value) {
+    if (!value) return "—";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "—";
+    const date = d.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const time = d.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+    return `<div>${escapeHtml(date)}</div><small class="muted">${escapeHtml(time)}</small>`;
+  }
+
   // ============================================================
   // LISTA
   // ============================================================
@@ -37,7 +49,7 @@
     if (!tbody) return;
 
     if (!state.paros.length) {
-      tbody.innerHTML = `<tr><td colspan="7" class="muted">No hay paros para mostrar.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="muted">No hay paros para mostrar.</td></tr>`;
       return;
     }
 
@@ -72,7 +84,7 @@
           <button class="row-action" data-open-paro="${p.orderId}">Abrir</button>
           ${canDelete ? `<button class="row-action row-action-danger" data-delete-paro="${p.orderId}" title="Eliminar Control de Paros" aria-label="Eliminar Control de Paros de ${escapeHtml(p.code)}">🗑️</button>` : ""}
         </td>
-        <td><strong>${escapeHtml(p.code)}</strong></td>
+        <td class="paros-articulo-stack">${fechaHoraStackHtml(order?.createdAt)}</td>
         <td>${escapeHtml(safeText(machine))}</td>
         <td class="paros-articulo-stack">
           <div>${escapeHtml(safeText(articulo))}</div>
@@ -82,6 +94,7 @@
         </td>
         <td><span class="status-badge ${paroStatusClass(p.status)}">${escapeHtml(meta?.label || p.status)}</span></td>
         <td>${escapeHtml(etapa)}</td>
+        <td><strong>${escapeHtml(p.code)}</strong></td>
         <td>${formatDuration(p.totalMs)}</td>
       </tr>`;
     }).join("");
