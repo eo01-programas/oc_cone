@@ -664,7 +664,10 @@ window.OC = window.OC || {};
         usuario: state.session.usuario || PROFILE_LABELS.SUPERVISOR,
         forced: !!closeData.forced,
         irregular: !!closeData.irregular,
-        note: closeData.note || ""
+        note: closeData.note || "",
+        // Antes se perdian: closeOrder_ (code.gs) ahora aplica estos campos
+        // sobre TRANS_ORDENES/TRANS_SUPER igual que signSupervisor.
+        data: orderToSupervisorPayload(order)
       });
       return mapBackendOrder(result);
     },
